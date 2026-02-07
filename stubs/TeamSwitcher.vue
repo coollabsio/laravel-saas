@@ -27,9 +27,8 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
-import { switchMethod } from '@/routes/teams';
-import { edit as editTeam } from '@/actions/App/Http/Controllers/TeamController';
-import { store as storeTeam } from '@/actions/App/Http/Controllers/TeamController';
+import { switchTeam } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
+import { edit as editTeam, store as storeTeam } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
 import type { Team } from '@/types';
 
 const page = usePage();
@@ -97,7 +96,7 @@ const handleCreateTeam = () => {
                             team.id === currentTeam?.id
                                 ? router.visit(editTeam().url)
                                 : router.put(
-                                      switchMethod(team.id).url,
+                                      switchTeam(team.id).url,
                                       {},
                                       { preserveState: false },
                                   )

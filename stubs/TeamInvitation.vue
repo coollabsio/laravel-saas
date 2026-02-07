@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import TeamInvitationController from '@/actions/App/Http/Controllers/TeamInvitationController';
+import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamInvitationController';
 import type { TeamInvitation } from '@/types';
 
 type Props = {

@@ -5,7 +5,7 @@ import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { index, checkout, portal } from '@/routes/billing';
+import { index, checkout, portal } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/BillingController';
 import { type BreadcrumbItem } from '@/types';
 
 type AvailablePlan = {

@@ -9,10 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import TeamController from '@/actions/App/Http/Controllers/TeamController';
-import TeamInvitationController from '@/actions/App/Http/Controllers/TeamInvitationController';
-import TeamMemberController from '@/actions/App/Http/Controllers/TeamMemberController';
-import { edit } from '@/routes/teams';
+import TeamController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
+import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamInvitationController';
+import TeamMemberController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamMemberController';
+import { edit } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
 import type { BreadcrumbItem, Team, TeamMember, TeamInvitation } from '@/types';
 
 type Props = {
