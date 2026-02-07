@@ -1,0 +1,30 @@
+{
+    "name": "coollabsio/laravel-saas",
+    "description": "Teams, Stripe billing, and self-hosted mode for Laravel applications.",
+    "keywords": ["laravel", "saas", "teams", "billing", "stripe"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^12.0",
+        "inertiajs/inertia-laravel": "^2.0",
+        "laravel/cashier": "^16.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Coollabsio\\LaravelSaas\\": "src/",
+            "Coollabsio\\LaravelSaas\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Coollabsio\\LaravelSaas\\LaravelSaasServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
