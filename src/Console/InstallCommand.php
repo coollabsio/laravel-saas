@@ -43,6 +43,7 @@ class InstallCommand extends Command
 
         $this->publishIfMissing('saas-vue', $this->vueStubs());
         $this->publishIfMissing('saas-routes', $this->routeStubs());
+        $this->forcePublish($this->managedStubs());
 
         $this->call('vendor:publish', ['--tag' => 'saas-config', '--force' => true]);
 
@@ -62,6 +63,28 @@ class InstallCommand extends Command
             $this->line('  Add an "Instance Settings" link to your <comment>TeamSwitcher.vue</comment> for root users.');
             $this->line('  See the updated stub at <comment>vendor/coollabsio/laravel-saas/stubs/TeamSwitcher.vue</comment>');
         }
+    }
+
+    protected function forcePublish(array $files): void
+    {
+        foreach ($files as $source => $target) {
+            $dir = dirname($target);
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            copy($source, $target);
+            $this->line("Updated: {$target}");
+        }
+    }
+
+    protected function managedStubs(): array
+    {
+        $base = dirname(__DIR__, 2).'/stubs';
+
+        return [
+            $base.'/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
+            $base.'/components/NativeCheckbox.vue' => resource_path('js/components/NativeCheckbox.vue'),
+        ];
     }
 
     protected function publishIfMissing(string $tag, array $files): void
