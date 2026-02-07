@@ -6,6 +6,7 @@ use Closure;
 use Coollabsio\LaravelSaas\Support\Billing;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Coollabsio\LaravelSaas\Models\InstanceSettings;
 use Symfony\Component\HttpFoundation\Response;
 
 class ShareSaasProps
@@ -25,6 +26,11 @@ class ShareSaasProps
                 'mode' => Billing::mode(),
                 'currentPlan' => $request->user()?->currentTeam?->plan()->value,
                 'requiresSubscription' => Billing::requiresSubscription(),
+            ],
+            'instance' => fn () => [
+                'selfHosted' => config('saas.self_hosted'),
+                'isRootUser' => $request->user()?->isRootUser() ?? false,
+                'registrationEnabled' => Billing::instanceSettingsModel()::registrationEnabled(),
             ],
         ]);
 

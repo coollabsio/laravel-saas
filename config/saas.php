@@ -9,6 +9,7 @@ return [
         'team' => Coollabsio\LaravelSaas\Models\Team::class,
         'team_invitation' => Coollabsio\LaravelSaas\Models\TeamInvitation::class,
         'user' => App\Models\User::class,
+        'instance_settings' => Coollabsio\LaravelSaas\Models\InstanceSettings::class,
     ],
 
     'plan_enum' => Coollabsio\LaravelSaas\Enums\Plan::class,
@@ -30,5 +31,6 @@ return [
     'routes' => [
         'teams' => true,
         'billing' => true,
+        'instance' => true,
     ],
 ];

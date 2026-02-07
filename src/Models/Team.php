@@ -23,6 +23,7 @@ class Team extends Model
         'name',
         'personal_team',
         'owner_id',
+        'is_root',
     ];
 
     /**
@@ -32,6 +33,7 @@ class Team extends Model
     {
         return [
             'personal_team' => 'boolean',
+            'is_root' => 'boolean',
         ];
     }
 
@@ -73,5 +75,10 @@ class Team extends Model
     public function hasUser($user): bool
     {
         return $this->users()->where('user_id', $user->id)->exists();
+    }
+
+    public function isRootTeam(): bool
+    {
+        return $this->is_root;
     }
 }

@@ -13,10 +13,13 @@ trait CreatesPersonalTeam
     {
         $teamModel = Billing::teamModel();
 
+        $isRoot = config('saas.self_hosted') && $teamModel::count() === 0;
+
         $team = $teamModel::forceCreate([
             'name' => $user->name."'s Team",
             'personal_team' => true,
             'owner_id' => $user->id,
+            'is_root' => $isRoot,
         ]);
 
         $team->users()->attach($user, ['role' => 'owner']);

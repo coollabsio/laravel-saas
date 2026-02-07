@@ -72,4 +72,14 @@ class Billing
     {
         return config('saas.models.user');
     }
+
+    public static function instanceSettingsModel(): string
+    {
+        return config('saas.models.instance_settings');
+    }
+
+    public static function isSelfHosted(): bool
+    {
+        return (bool) config('saas.self_hosted');
+    }
 }

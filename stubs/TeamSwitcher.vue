@@ -37,6 +37,7 @@ const { isMobile, state } = useSidebar();
 
 const currentTeam = computed(() => page.props.currentTeam as Team | null);
 const teams = computed(() => page.props.teams as Team[] | null);
+const instance = computed(() => page.props.instance as { selfHosted: boolean; isRootUser: boolean; registrationEnabled: boolean } | null);
 
 const showCreateDialog = ref(false);
 const createTeamForm = useForm({ name: '' });
@@ -111,6 +112,13 @@ const handleCreateTeam = () => {
                         />
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        v-if="instance?.isRootUser"
+                        class="cursor-pointer gap-2 p-2"
+                        @click="router.visit('/settings/instance')"
+                    >
+                        Instance Settings
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         class="cursor-pointer gap-2 p-2"
                         @click="showCreateDialog = true"

@@ -15,6 +15,11 @@
             "Coollabsio\\LaravelSaas\\Database\\Factories\\": "database/factories/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Coollabsio\\LaravelSaas\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -23,8 +28,15 @@
         }
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "orchestra/testbench": "^10.9",
+        "pestphp/pest": "^4.3"
+    }
 }

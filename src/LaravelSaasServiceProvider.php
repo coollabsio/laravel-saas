@@ -3,10 +3,15 @@
 namespace Coollabsio\LaravelSaas;
 
 use Coollabsio\LaravelSaas\Console\BillingClearPriceCache;
+use Coollabsio\LaravelSaas\Http\Middleware\CheckRegistrationEnabled;
 use Coollabsio\LaravelSaas\Http\Middleware\EnsurePlanAccess;
+use Coollabsio\LaravelSaas\Http\Middleware\EnsureRootUser;
 use Coollabsio\LaravelSaas\Http\Middleware\EnsureSubscribed;
+use Coollabsio\LaravelSaas\Listeners\LockRegistrationAfterRootUser;
+use Illuminate\Auth\Events\Registered;
 use Coollabsio\LaravelSaas\Policies\TeamPolicy;
 use Coollabsio\LaravelSaas\Support\Billing;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -35,6 +40,7 @@ class LaravelSaasServiceProvider extends ServiceProvider
         $this->configureCommands();
         $this->configureCashier();
         $this->configureViews();
+        $this->configureEvents();
     }
 
     protected function configurePublishing(): void
@@ -56,11 +62,13 @@ class LaravelSaasServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/Billing.vue' => resource_path('js/pages/settings/Billing.vue'),
             __DIR__.'/../stubs/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
             __DIR__.'/../stubs/TeamSwitcher.vue' => resource_path('js/components/TeamSwitcher.vue'),
+            __DIR__.'/../stubs/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
         ], 'saas-vue');
 
         $this->publishes([
             __DIR__.'/../routes/teams.php' => base_path('routes/saas-teams.php'),
             __DIR__.'/../routes/billing.php' => base_path('routes/saas-billing.php'),
+            __DIR__.'/../routes/instance.php' => base_path('routes/saas-instance.php'),
         ], 'saas-routes');
 
         $this->publishes([
@@ -77,6 +85,10 @@ class LaravelSaasServiceProvider extends ServiceProvider
         if (config('saas.routes.billing', true)) {
             Route::group([], __DIR__.'/../routes/billing.php');
         }
+
+        if (config('saas.routes.instance', true)) {
+            Route::group([], __DIR__.'/../routes/instance.php');
+        }
     }
 
     protected function configureMigrations(): void
@@ -88,6 +100,10 @@ class LaravelSaasServiceProvider extends ServiceProvider
     {
         Route::aliasMiddleware('plan', EnsurePlanAccess::class);
         Route::aliasMiddleware('subscribed', EnsureSubscribed::class);
+        Route::aliasMiddleware('root', EnsureRootUser::class);
+
+        $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+        $kernel->pushMiddleware(CheckRegistrationEnabled::class);
     }
 
     protected function configurePolicies(): void
@@ -109,6 +125,13 @@ class LaravelSaasServiceProvider extends ServiceProvider
     {
         if (Billing::enabled()) {
             Cashier::useCustomerModel(Billing::teamModel());
+        }
+    }
+
+    protected function configureEvents(): void
+    {
+        if (config('saas.self_hosted')) {
+            Event::listen(Registered::class, LockRegistrationAfterRootUser::class);
         }
     }
 

@@ -44,4 +44,13 @@ trait HasTeams
 
         return $pivot ? TeamRole::from($pivot->role) : null;
     }
+
+    public function isRootUser(): bool
+    {
+        if (! config('saas.self_hosted')) {
+            return false;
+        }
+
+        return $this->ownedTeams()->where('is_root', true)->exists();
+    }
 }
