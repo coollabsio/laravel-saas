@@ -68,7 +68,10 @@ class InstallCommand extends Command
         $base = dirname(__DIR__, 2).'/stubs';
 
         return [
+            $base.'/Team.vue' => resource_path('js/pages/settings/Team.vue'),
+            $base.'/Billing.vue' => resource_path('js/pages/settings/Billing.vue'),
             $base.'/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
+            $base.'/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
             $base.'/TeamSwitcher.vue' => resource_path('js/components/TeamSwitcher.vue'),
             $base.'/components/NativeCheckbox.vue' => resource_path('js/components/NativeCheckbox.vue'),
         ];
@@ -98,12 +101,7 @@ class InstallCommand extends Command
     {
         $base = dirname(__DIR__, 2).'/stubs';
 
-        return [
-            $base.'/Team.vue' => resource_path('js/pages/settings/Team.vue'),
-            $base.'/Billing.vue' => resource_path('js/pages/settings/Billing.vue'),
-            $base.'/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
-            $base.'/components/NativeCheckbox.vue' => resource_path('js/components/NativeCheckbox.vue'),
-        ];
+        return [];
     }
 
     protected function routeStubs(): array
