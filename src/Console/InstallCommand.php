@@ -6,15 +6,23 @@ use Illuminate\Console\Command;
 
 class InstallCommand extends Command
 {
-    protected $signature = 'saas:install';
+    protected $signature = 'saas:install {--update : Update existing installation with new/changed stubs}';
 
     protected $description = 'Install the Laravel SaaS package';
 
     public function handle(): void
     {
+        if ($this->option('update')) {
+            $this->handleUpdate();
+
+            return;
+        }
+
         $this->info('Installing Laravel SaaS...');
 
         $this->call('vendor:publish', ['--tag' => 'saas-config']);
+        $this->call('vendor:publish', ['--tag' => 'saas-vue']);
+        $this->call('vendor:publish', ['--tag' => 'saas-routes']);
 
         $this->registerTestSuite();
         $this->registerPestDirectory();
@@ -27,7 +35,63 @@ class InstallCommand extends Command
         $this->line('  2. Add <comment>use CreatesPersonalTeam</comment> to your CreateNewUser action');
         $this->line('  3. Add <comment>ShareSaasProps::class</comment> to web middleware in bootstrap/app.php');
         $this->line('  4. Run <comment>php artisan migrate</comment>');
-        $this->line('  5. Publish Vue stubs: <comment>php artisan vendor:publish --tag=saas-vue</comment>');
+    }
+
+    protected function handleUpdate(): void
+    {
+        $this->info('Updating Laravel SaaS stubs...');
+
+        $this->publishIfMissing('saas-vue', $this->vueStubs());
+        $this->publishIfMissing('saas-routes', $this->routeStubs());
+
+        $this->call('vendor:publish', ['--tag' => 'saas-config', '--force' => true]);
+
+        $this->newLine();
+        $this->info('Update complete. Run `php artisan migrate` to apply any new migrations.');
+    }
+
+    protected function publishIfMissing(string $tag, array $files): void
+    {
+        $missing = array_filter($files, fn (string $path) => ! file_exists($path));
+
+        if (empty($missing)) {
+            $this->line("No new files to publish for [{$tag}].");
+
+            return;
+        }
+
+        foreach ($missing as $source => $target) {
+            $dir = dirname($target);
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            copy($source, $target);
+            $this->line("Published: {$target}");
+        }
+    }
+
+    protected function vueStubs(): array
+    {
+        $base = dirname(__DIR__, 2).'/stubs';
+
+        return [
+            $base.'/Team.vue' => resource_path('js/pages/settings/Team.vue'),
+            $base.'/Billing.vue' => resource_path('js/pages/settings/Billing.vue'),
+            $base.'/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
+            $base.'/TeamSwitcher.vue' => resource_path('js/components/TeamSwitcher.vue'),
+            $base.'/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
+        ];
+    }
+
+    protected function routeStubs(): array
+    {
+        $base = dirname(__DIR__, 2).'/routes';
+
+        return [
+            $base.'/teams.php' => base_path('routes/saas-teams.php'),
+            $base.'/billing.php' => base_path('routes/saas-billing.php'),
+            $base.'/instance.php' => base_path('routes/saas-instance.php'),
+        ];
     }
 
     protected function registerTestSuite(): void
