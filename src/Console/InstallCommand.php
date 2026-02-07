@@ -46,8 +46,22 @@ class InstallCommand extends Command
 
         $this->call('vendor:publish', ['--tag' => 'saas-config', '--force' => true]);
 
+        $this->warnAboutManualSteps();
+
         $this->newLine();
         $this->info('Update complete. Run `php artisan migrate` to apply any new migrations.');
+    }
+
+    protected function warnAboutManualSteps(): void
+    {
+        $switcher = resource_path('js/components/TeamSwitcher.vue');
+
+        if (file_exists($switcher) && ! str_contains(file_get_contents($switcher), 'instance')) {
+            $this->newLine();
+            $this->warn('Manual step required:');
+            $this->line('  Add an "Instance Settings" link to your <comment>TeamSwitcher.vue</comment> for root users.');
+            $this->line('  See the updated stub at <comment>vendor/coollabsio/laravel-saas/stubs/TeamSwitcher.vue</comment>');
+        }
     }
 
     protected function publishIfMissing(string $tag, array $files): void
@@ -80,6 +94,7 @@ class InstallCommand extends Command
             $base.'/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
             $base.'/TeamSwitcher.vue' => resource_path('js/components/TeamSwitcher.vue'),
             $base.'/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
+            $base.'/components/NativeCheckbox.vue' => resource_path('js/components/NativeCheckbox.vue'),
         ];
     }
 

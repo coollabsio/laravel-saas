@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import NativeCheckbox from '@/components/NativeCheckbox.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import type { BreadcrumbItem } from '@/types';
@@ -44,13 +45,8 @@ const submit = () => {
 
                 <form @submit.prevent="submit" class="space-y-6">
                     <div class="flex items-center gap-3">
-                        <input
-                            id="registration_enabled"
-                            type="checkbox"
-                            v-model="form.registration_enabled"
-                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
                         <Label for="registration_enabled">Registration enabled</Label>
+                        <NativeCheckbox id="registration_enabled" v-model="form.registration_enabled" />
                     </div>
 
                     <div class="flex items-center gap-4">
