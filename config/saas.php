@@ -12,7 +12,7 @@ return [
         'instance_settings' => App\Models\InstanceSettings::class,
     ],
 
-    'plan_enum' => Coollabsio\LaravelSaas\Enums\Plan::class,
+    'plan_enum' => App\Enums\Plan::class,
 
     'stripe' => [
         'prices' => [

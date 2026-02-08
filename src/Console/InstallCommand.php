@@ -25,6 +25,7 @@ class InstallCommand extends Command
         $this->call('vendor:publish', ['--tag' => 'saas-routes']);
 
         $this->configureModels();
+        $this->publishPlanEnum();
         $this->publishAiDocs();
         $this->injectAgentSections();
         $this->registerTestSuite();
@@ -48,6 +49,7 @@ class InstallCommand extends Command
         $this->publishIfMissing('saas-routes', $this->routeStubs());
         $this->forcePublish($this->managedStubs());
         $this->configureModels();
+        $this->publishPlanEnum();
         $this->publishAiDocs();
         $this->injectAgentSections();
 
@@ -207,6 +209,26 @@ class InstallCommand extends Command
     protected function unindentStub(string $stub): string
     {
         return preg_replace('/^        /m', '', $stub);
+    }
+
+    protected function publishPlanEnum(): void
+    {
+        $source = dirname(__DIR__, 2).'/stubs/Plan.php';
+        $target = app_path('Enums/Plan.php');
+
+        if (file_exists($target)) {
+            $this->line('Plan enum already exists at app/Enums/Plan.php.');
+
+            return;
+        }
+
+        $dir = dirname($target);
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        copy($source, $target);
+        $this->info("Published Plan enum to {$target}");
     }
 
     protected function publishAiDocs(): void
