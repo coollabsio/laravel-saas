@@ -6,10 +6,10 @@ return [
     'require_subscription' => env('REQUIRE_SUBSCRIPTION', false),
 
     'models' => [
-        'team' => Coollabsio\LaravelSaas\Models\Team::class,
-        'team_invitation' => Coollabsio\LaravelSaas\Models\TeamInvitation::class,
+        'team' => App\Models\Team::class,
+        'team_invitation' => App\Models\TeamInvitation::class,
         'user' => App\Models\User::class,
-        'instance_settings' => Coollabsio\LaravelSaas\Models\InstanceSettings::class,
+        'instance_settings' => App\Models\InstanceSettings::class,
     ],
 
     'plan_enum' => Coollabsio\LaravelSaas\Enums\Plan::class,
