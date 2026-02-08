@@ -151,8 +151,8 @@ class InstallCommand extends Command
             }
 
             $contents = file_get_contents($path);
-            $startTag = '<!-- laravel-saas:start -->';
-            $endTag = '<!-- laravel-saas:end -->';
+            $startTag = '<laravel-saas>';
+            $endTag = '</laravel-saas>';
 
             if (str_contains($contents, $startTag)) {
                 $contents = preg_replace(
