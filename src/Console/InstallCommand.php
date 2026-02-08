@@ -176,7 +176,7 @@ class InstallCommand extends Command
 
 This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode.
 
-- Package docs: `.ai/laravel-saas/` (BILLING.md, PLAN_GATING.md, SELF_HOSTED.md)
+- Package docs: `.ai/laravel-saas/` (BILLING.md, EMAILS.md, PLAN_GATING.md, SELF_HOSTED.md)
 - Config: `config/saas.php`
 - Managed Vue stubs (do not edit directly — overwritten on `saas:install --update`):
   - `resources/js/pages/settings/Team.vue`

@@ -59,4 +59,4 @@ When adding new publishable assets (Vue stubs, route files, config keys), always
 
 ## Context Files
 
-`.ai/` directory contains detailed architecture docs: `BILLING.md`, `PLAN_GATING.md`, `SELF_HOSTED.md`. Read these before working on billing or plan-gating features.
+`.ai/` directory contains detailed architecture docs: `BILLING.md`, `EMAILS.md`, `PLAN_GATING.md`, `SELF_HOSTED.md`. Read these before working on billing, email, or plan-gating features.
