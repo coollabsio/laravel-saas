@@ -49,6 +49,9 @@ class InstallCommand extends Command
         $this->publishAiDocs();
         $this->injectAgentSections();
 
+        $this->registerTestSuite();
+        $this->registerPestDirectory();
+
         $this->call('vendor:publish', ['--tag' => 'saas-config', '--force' => true]);
 
         $this->newLine();
