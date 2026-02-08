@@ -10,7 +10,7 @@ class EnsureRootUser
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! config('saas.self_hosted') || ! $request->user()?->isRootUser()) {
+        if (! $request->user()?->isRootUser()) {
             abort(403);
         }
 
