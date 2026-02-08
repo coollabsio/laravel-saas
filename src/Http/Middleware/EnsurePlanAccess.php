@@ -15,6 +15,10 @@ class EnsurePlanAccess
             return $next($request);
         }
 
+        if ($request->user()?->isRootUser()) {
+            return $next($request);
+        }
+
         $planEnum = Billing::planEnum();
         $requiredPlan = $planEnum::from($plan);
         $team = $request->user()?->currentTeam;
