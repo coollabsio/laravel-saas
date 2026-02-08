@@ -47,10 +47,6 @@ trait HasTeams
 
     public function isRootUser(): bool
     {
-        if (! config('saas.self_hosted')) {
-            return false;
-        }
-
         return $this->ownedTeams()->where('is_root', true)->exists();
     }
 }
