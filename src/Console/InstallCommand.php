@@ -30,6 +30,7 @@ class InstallCommand extends Command
         $this->injectAgentSections();
         $this->registerTestSuite();
         $this->registerPestDirectory();
+        $this->generateWayfinder();
 
         $this->newLine();
         $this->info('Laravel SaaS installed successfully.');
@@ -57,6 +58,7 @@ class InstallCommand extends Command
         $this->registerPestDirectory();
 
         $this->call('vendor:publish', ['--tag' => 'saas-config', '--force' => true]);
+        $this->generateWayfinder();
 
         $this->newLine();
         $this->info('Update complete. Run `php artisan migrate` to apply any new migrations.');
@@ -209,6 +211,16 @@ class InstallCommand extends Command
     protected function unindentStub(string $stub): string
     {
         return preg_replace('/^        /m', '', $stub);
+    }
+
+    protected function generateWayfinder(): void
+    {
+        if (! class_exists(\Laravel\Wayfinder\WayfinderServiceProvider::class)) {
+            return;
+        }
+
+        $this->call('wayfinder:generate');
+        $this->info('Wayfinder routes generated.');
     }
 
     protected function publishPlanEnum(): void
