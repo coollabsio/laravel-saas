@@ -24,6 +24,7 @@ class InstallCommand extends Command
         $this->call('vendor:publish', ['--tag' => 'saas-vue']);
         $this->call('vendor:publish', ['--tag' => 'saas-routes']);
 
+        $this->configureModels();
         $this->publishAiDocs();
         $this->injectAgentSections();
         $this->registerTestSuite();
@@ -46,6 +47,7 @@ class InstallCommand extends Command
         $this->publishIfMissing('saas-vue', $this->vueStubs());
         $this->publishIfMissing('saas-routes', $this->routeStubs());
         $this->forcePublish($this->managedStubs());
+        $this->configureModels();
         $this->publishAiDocs();
         $this->injectAgentSections();
 
@@ -120,6 +122,91 @@ class InstallCommand extends Command
             $base.'/billing.php' => base_path('routes/saas-billing.php'),
             $base.'/instance.php' => base_path('routes/saas-instance.php'),
         ];
+    }
+
+    /**
+     * @return array<string, array{package_class: string, app_path: string}>
+     */
+    protected function modelStubs(): array
+    {
+        return [
+            'Team' => [
+                'package_class' => \Coollabsio\LaravelSaas\Models\Team::class,
+                'app_path' => app_path('Models/Team.php'),
+            ],
+            'TeamInvitation' => [
+                'package_class' => \Coollabsio\LaravelSaas\Models\TeamInvitation::class,
+                'app_path' => app_path('Models/TeamInvitation.php'),
+            ],
+            'InstanceSettings' => [
+                'package_class' => \Coollabsio\LaravelSaas\Models\InstanceSettings::class,
+                'app_path' => app_path('Models/InstanceSettings.php'),
+            ],
+        ];
+    }
+
+    protected function configureModels(): void
+    {
+        foreach ($this->modelStubs() as $name => $stub) {
+            $path = $stub['app_path'];
+            $packageClass = $stub['package_class'];
+
+            if (! file_exists($path)) {
+                $this->createModelStub($name, $packageClass, $path);
+
+                continue;
+            }
+
+            $contents = file_get_contents($path);
+
+            if (str_contains($contents, $packageClass)) {
+                $this->line("{$name} model already extends package model.");
+
+                continue;
+            }
+
+            if (str_contains($contents, "extends Model")) {
+                $contents = str_replace(
+                    "use Illuminate\\Database\\Eloquent\\Model;\n",
+                    "use {$packageClass} as Base{$name};\n",
+                    $contents,
+                );
+                $contents = str_replace('extends Model', "extends Base{$name}", $contents);
+                file_put_contents($path, $contents);
+                $this->info("Updated {$name} model to extend package model.");
+            } else {
+                $this->warn("{$path} exists but does not extend Model. Please extend {$packageClass} manually.");
+            }
+        }
+    }
+
+    protected function createModelStub(string $name, string $packageClass, string $path): void
+    {
+        $dir = dirname($path);
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $stub = <<<PHP
+        <?php
+
+        namespace App\Models;
+
+        use {$packageClass} as Base{$name};
+
+        class {$name} extends Base{$name}
+        {
+            //
+        }
+        PHP;
+
+        file_put_contents($path, $this->unindentStub($stub));
+        $this->info("Created {$path}");
+    }
+
+    protected function unindentStub(string $stub): string
+    {
+        return preg_replace('/^        /m', '', $stub);
     }
 
     protected function publishAiDocs(): void
