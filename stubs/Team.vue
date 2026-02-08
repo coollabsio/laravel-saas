@@ -109,8 +109,15 @@ const deleteTeam = () => {
                             <p class="text-xs text-muted-foreground">{{ member.email }}</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <Badge variant="secondary" class="capitalize">{{ member.role }}</Badge>
-                            <button v-if="isOwner && member.role !== 'owner'"
+                            <select v-if="isOwner && member.id !== team.owner_id"
+                                :value="member.role"
+                                @change="router.patch(TeamMemberController.update.url({ team: team.id, user: member.id }), { role: ($event.target as HTMLSelectElement).value }, { preserveScroll: true })"
+                                class="appearance-none rounded-sm border-2 border-input py-1 px-2 text-xs capitalize bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow">
+                                <option value="member">Member</option>
+                                <option value="owner">Owner</option>
+                            </select>
+                            <Badge v-else variant="secondary" class="capitalize">{{ member.role }}</Badge>
+                            <button v-if="isOwner && member.id !== team.owner_id"
                                 class="text-muted-foreground hover:text-destructive"
                                 @click="handleRemoveMember(member.id)">
                                 <Trash2 class="h-4 w-4" />
