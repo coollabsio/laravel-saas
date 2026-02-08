@@ -2,6 +2,10 @@
 
 Teams, Stripe billing, and self-hosted mode for Laravel applications. Built on top of Laravel Cashier and Inertia.js.
 
+Used for upcoming apps at coolLabs. 
+
+> Andras: It is opinionated, so maybe it is not useful for you. 
+
 ## Features
 
 - **Teams** — create, manage, switch teams; invite members via email
