@@ -24,6 +24,8 @@ class InstallCommand extends Command
         $this->call('vendor:publish', ['--tag' => 'saas-vue']);
         $this->call('vendor:publish', ['--tag' => 'saas-routes']);
 
+        $this->publishAiDocs();
+        $this->injectAgentSections();
         $this->registerTestSuite();
         $this->registerPestDirectory();
 
@@ -44,6 +46,8 @@ class InstallCommand extends Command
         $this->publishIfMissing('saas-vue', $this->vueStubs());
         $this->publishIfMissing('saas-routes', $this->routeStubs());
         $this->forcePublish($this->managedStubs());
+        $this->publishAiDocs();
+        $this->injectAgentSections();
 
         $this->call('vendor:publish', ['--tag' => 'saas-config', '--force' => true]);
 
@@ -113,6 +117,80 @@ class InstallCommand extends Command
             $base.'/billing.php' => base_path('routes/saas-billing.php'),
             $base.'/instance.php' => base_path('routes/saas-instance.php'),
         ];
+    }
+
+    protected function publishAiDocs(): void
+    {
+        $source = dirname(__DIR__, 2).'/.ai';
+        $target = base_path('.ai/laravel-saas');
+
+        if (! is_dir($source)) {
+            return;
+        }
+
+        if (! is_dir($target)) {
+            mkdir($target, 0755, true);
+        }
+
+        foreach (glob($source.'/*.md') as $file) {
+            $dest = $target.'/'.basename($file);
+            copy($file, $dest);
+            $this->line("Updated: {$dest}");
+        }
+    }
+
+    protected function injectAgentSections(): void
+    {
+        $section = $this->buildAgentSection();
+
+        foreach (['CLAUDE.md', 'AGENTS.md'] as $filename) {
+            $path = base_path($filename);
+
+            if (! file_exists($path)) {
+                continue;
+            }
+
+            $contents = file_get_contents($path);
+            $startTag = '<!-- laravel-saas:start -->';
+            $endTag = '<!-- laravel-saas:end -->';
+
+            if (str_contains($contents, $startTag)) {
+                $contents = preg_replace(
+                    '/'.preg_quote($startTag, '/').'.*?'.preg_quote($endTag, '/').'/s',
+                    $startTag."\n".$section."\n".$endTag,
+                    $contents,
+                );
+            } else {
+                $contents = rtrim($contents)."\n\n".$startTag."\n".$section."\n".$endTag."\n";
+            }
+
+            file_put_contents($path, $contents);
+            $this->info("Updated {$filename} with laravel-saas section.");
+        }
+    }
+
+    protected function buildAgentSection(): string
+    {
+        return <<<'MD'
+## Laravel SaaS Package
+
+This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode.
+
+- Package docs: `.ai/laravel-saas/` (BILLING.md, PLAN_GATING.md, SELF_HOSTED.md)
+- Config: `config/saas.php`
+- Managed Vue stubs (do not edit directly — overwritten on `saas:install --update`):
+  - `resources/js/pages/settings/Team.vue`
+  - `resources/js/pages/settings/Billing.vue`
+  - `resources/js/pages/settings/Instance.vue`
+  - `resources/js/pages/TeamInvitation.vue`
+  - `resources/js/components/TeamSwitcher.vue`
+  - `resources/js/components/NativeCheckbox.vue`
+- User model must use `Coollabsio\LaravelSaas\Concerns\HasTeams` trait
+- Registration action must use `Coollabsio\LaravelSaas\Concerns\CreatesPersonalTeam` trait
+- `ShareSaasProps` middleware shares `currentTeam`, `teams`, `billing`, and `instance` Inertia props
+- Self-hosted mode: `SELF_HOSTED=true` disables billing, first user becomes root
+- Root users bypass `plan` and `subscribed` middleware
+MD;
     }
 
     protected function registerTestSuite(): void
