@@ -3,7 +3,7 @@
 return [
     'frontend' => env('SAAS_FRONTEND', 'vue'),
 
-    'self_hosted' => env('SELF_HOSTED', false),
+    'self_hosted' => env('SELF_HOSTED', true),
 
     'require_subscription' => env('REQUIRE_SUBSCRIPTION', false),
 
