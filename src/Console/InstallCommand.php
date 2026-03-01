@@ -390,38 +390,58 @@ class InstallCommand extends Command
 
     protected function publishDesignComponents(): void
     {
-        $framework = $this->frontend();
-        $source = dirname(__DIR__, 2).'/stubs/ui-'.$framework;
+        $base = dirname(__DIR__, 2).'/stubs';
 
-        if (! is_dir($source)) {
-            $source = dirname(__DIR__, 2).'/stubs/ui';
+        // Publish Coolify-themed shadcn UI components
+        $uiSource = $base.'/ui';
+
+        if (is_dir($uiSource)) {
+            $this->copyDirectory($uiSource, resource_path('js/components/ui'));
+            $this->info('Published Coolify-themed UI components.');
         }
 
-        if (! is_dir($source)) {
-            $this->warn('Design system UI components not found.');
+        // Publish Coolify-themed non-UI components (Heading, AppHeader, etc.)
+        $designSource = $base.'/design';
 
+        if (! is_dir($designSource)) {
             return;
         }
 
-        // Only publish if the UI components match the chosen framework
-        $extension = $framework === 'svelte' ? '.svelte' : '.vue';
-        $sampleFile = glob($source.'/**/*'.$extension) ?: glob($source.'/*'.$extension);
+        $componentsSource = $designSource.'/components';
 
-        if (empty($sampleFile)) {
-            $this->warn("No {$framework} design system UI components found, skipping.");
+        if (is_dir($componentsSource)) {
+            foreach (scandir($componentsSource) as $file) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
 
-            return;
+                $target = resource_path('js/components/'.$file);
+
+                if (! file_exists($target)) {
+                    continue;
+                }
+
+                copy($componentsSource.'/'.$file, $target);
+                $this->line("Updated: resources/js/components/{$file}");
+            }
         }
 
-        $target = resource_path('js/components/ui');
+        $layoutsSource = $designSource.'/layouts';
 
-        $this->copyDirectory($source, $target);
-        $this->info('Published Coolify-themed UI components to resources/js/components/ui/.');
+        if (is_dir($layoutsSource)) {
+            $this->copyDirectory($layoutsSource, resource_path('js/layouts'), true);
+        }
+
+        $this->info('Published Coolify-themed layout and component overrides.');
     }
 
-    protected function copyDirectory(string $source, string $target): void
+    protected function copyDirectory(string $source, string $target, bool $onlyExisting = false): void
     {
         if (! is_dir($target)) {
+            if ($onlyExisting) {
+                return;
+            }
+
             mkdir($target, 0755, true);
         }
 
@@ -434,8 +454,8 @@ class InstallCommand extends Command
             $targetPath = $target.'/'.$item;
 
             if (is_dir($sourcePath)) {
-                $this->copyDirectory($sourcePath, $targetPath);
-            } else {
+                $this->copyDirectory($sourcePath, $targetPath, $onlyExisting);
+            } elseif (! $onlyExisting || file_exists($targetPath)) {
                 copy($sourcePath, $targetPath);
             }
         }
