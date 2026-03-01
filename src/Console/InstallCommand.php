@@ -179,6 +179,8 @@ class InstallCommand extends Command
             $dir."/TeamSwitcher.{$ext}" => resource_path("js/components/TeamSwitcher.{$ext}"),
             $dir."/components/NativeCheckbox.{$ext}" => resource_path("js/components/NativeCheckbox.{$ext}"),
             $dir."/Login.{$ext}" => resource_path("js/pages/auth/Login.{$ext}"),
+            $dir."/Profile.{$ext}" => resource_path("js/pages/settings/Profile.{$ext}"),
+            $dir."/components/DeleteUser.{$ext}" => resource_path("js/components/DeleteUser.{$ext}"),
         ];
     }
 
@@ -529,6 +531,8 @@ This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode
   - `resources/js/components/TeamSwitcher.{$ext}`
   - `resources/js/components/NativeCheckbox.{$ext}`
   - `resources/js/pages/auth/Login.{$ext}`
+  - `resources/js/pages/settings/Profile.{$ext}`
+  - `resources/js/components/DeleteUser.{$ext}`
 - User model must use `Coollabsio\LaravelSaas\Concerns\HasTeams` trait
 - Registration action must use `Coollabsio\LaravelSaas\Concerns\CreatesPersonalTeam` trait
 - `ShareSaasProps` middleware shares `currentTeam`, `teams`, `billing`, `instance`, and `dev` (local env only) Inertia props
