@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { useForm } from '@inertiajs/svelte';
+    import { router } from '@inertiajs/svelte';
     import Heading from '@/components/Heading.svelte';
     import { Button } from '@/components/ui/button';
     import AppLayout from '@/layouts/AppLayout.svelte';
@@ -53,8 +53,7 @@
     });
 
     function upgradeTo(selectedPlan: string) {
-        const form = useForm({ plan: selectedPlan, interval });
-        $form.post(checkout.url());
+        router.post(checkout.url(), { plan: selectedPlan, interval });
     }
 </script>
 

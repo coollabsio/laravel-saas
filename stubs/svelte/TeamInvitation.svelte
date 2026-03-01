@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { useForm, page } from '@inertiajs/svelte';
+    import { router, page } from '@inertiajs/svelte';
     import { Button } from '@/components/ui/button';
     import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamInvitationController';
     import type { TeamInvitation } from '@/types';
@@ -13,8 +13,7 @@
     const isAuthenticated = $derived(!!$page.props.auth?.user);
 
     function acceptInvitation() {
-        const form = useForm({});
-        $form.post(
+        router.post(
             TeamInvitationController.process.url({
                 token: invitation.token,
             }),
