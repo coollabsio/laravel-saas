@@ -47,10 +47,63 @@
                 return `margin-top: ${sideOffset}px;`;
         }
     };
+
+    let menuEl: HTMLDivElement | undefined = $state();
+
+    const focusItem = (direction: 'first' | 'last' | 'next' | 'prev') => {
+        if (!menuEl) return;
+        const items = Array.from(menuEl.querySelectorAll<HTMLElement>('[role="menuitem"]:not([disabled])'));
+        if (items.length === 0) return;
+        const current = items.indexOf(document.activeElement as HTMLElement);
+        let target: HTMLElement;
+        if (direction === 'first') target = items[0];
+        else if (direction === 'last') target = items[items.length - 1];
+        else if (direction === 'next') target = items[(current + 1) % items.length];
+        else target = items[(current - 1 + items.length) % items.length];
+        target.focus();
+    };
+
+    $effect(() => {
+        if (!open()) return;
+
+        const onKeydown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                close();
+            }
+        };
+
+        document.addEventListener('keydown', onKeydown);
+        requestAnimationFrame(() => focusItem('first'));
+
+        return () => document.removeEventListener('keydown', onKeydown);
+    });
+
+    const handleKeydown = (event: KeyboardEvent) => {
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                focusItem('next');
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                focusItem('prev');
+                break;
+            case 'Home':
+                event.preventDefault();
+                focusItem('first');
+                break;
+            case 'End':
+                event.preventDefault();
+                focusItem('last');
+                break;
+        }
+    };
 </script>
 
 {#if open()}
     <div
+        bind:this={menuEl}
         class={cn(
             'absolute z-50 min-w-48 rounded-sm border border-neutral-300 dark:border-coolgray-300 bg-white dark:bg-coolgray-200 p-1 text-popover-foreground dark:text-white shadow-sm',
             alignClasses[align] ?? alignClasses.start,
@@ -60,7 +113,7 @@
         style={offsetStyle()}
         role="menu"
         tabindex="-1"
-        onkeydown={(event) => event.key === 'Escape' && close()}
+        onkeydown={handleKeydown}
     >
         {@render children?.()}
     </div>

@@ -34,7 +34,12 @@
 {#if asChild}
     {@render children?.({ class: classes(), onClick: handleClick })}
 {:else}
-    <button type="button" class={classes()} onclick={handleClick}>
+    <button type="button" role="menuitem" class={classes()} onclick={handleClick} onkeydown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+        }
+    }}>
         {@render children?.({})}
     </button>
 {/if}

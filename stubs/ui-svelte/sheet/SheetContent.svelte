@@ -46,6 +46,45 @@
 
         return { ...axis, duration: 260, opacity: 1 };
     };
+
+    let previouslyFocused: HTMLElement | null = null;
+    let panelEl: HTMLDivElement | undefined = $state();
+
+    $effect(() => {
+        if (!open()) return;
+
+        previouslyFocused = document.activeElement as HTMLElement;
+
+        const onKeydown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                close();
+            }
+            if (e.key === 'Tab' && panelEl) {
+                const focusable = panelEl.querySelectorAll<HTMLElement>(
+                    'a[href], button:not([disabled]), textarea, input:not([disabled]), select, [tabindex]:not([tabindex="-1"])',
+                );
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        };
+
+        document.addEventListener('keydown', onKeydown);
+        requestAnimationFrame(() => panelEl?.focus());
+
+        return () => {
+            document.removeEventListener('keydown', onKeydown);
+            previouslyFocused?.focus();
+        };
+    });
 </script>
 
 {#if open()}
@@ -57,12 +96,16 @@
             onclick={close}
         ></button>
         <div
+            bind:this={panelEl}
             class={cn(
                 'fixed relative flex flex-col gap-4 overflow-y-auto border-none bg-background p-6 shadow-lg',
                 sideClasses[side] ?? sideClasses.right,
                 sizeClasses[side] ?? sizeClasses.right,
                 className,
             )}
+            role="dialog"
+            aria-modal="true"
+            tabindex="-1"
             in:fly={panelTransition()}
             out:fly={panelTransition()}
         >

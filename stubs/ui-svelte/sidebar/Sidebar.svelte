@@ -25,6 +25,21 @@
     } = $props();
 
     const { isMobile, state, openMobile, setOpenMobile } = getContext<SidebarContext>(SIDEBAR_CONTEXT);
+
+    // ESC to close mobile sidebar
+    $effect(() => {
+        if (!$isMobile || !$openMobile) return;
+
+        const onKeydown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setOpenMobile(false);
+            }
+        };
+
+        document.addEventListener('keydown', onKeydown);
+        return () => document.removeEventListener('keydown', onKeydown);
+    });
 </script>
 
 {#if collapsible === 'none'}
