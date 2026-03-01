@@ -7,7 +7,6 @@
         DialogContent,
         DialogDescription,
         DialogFooter,
-        DialogHeader,
         DialogTitle,
     } from '@/components/ui/dialog';
     import {
@@ -110,12 +109,12 @@
 
 <Dialog bind:open={showCreateDialog}>
     <DialogContent class="sm:max-w-md">
-        <DialogHeader>
+        <div class="flex flex-col space-y-1.5 text-center sm:text-left">
             <DialogTitle>Create Team</DialogTitle>
             <DialogDescription>
                 Create a new team to collaborate with others.
             </DialogDescription>
-        </DialogHeader>
+        </div>
         <form onsubmit={handleCreateTeam} class="space-y-4">
             <div class="space-y-2">
                 <Label for="team-name">Team name</Label>
