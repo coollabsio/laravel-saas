@@ -347,6 +347,12 @@ Package auto-registers team and billing routes (toggleable via `config('saas.rou
 - `plan:pro` middleware and `subscribed` middleware auto-bypass in self-hosted mode
 - Tests should cover both modes using `config(['saas.self_hosted' => true])`
 
+## Stub Rules
+
+- **Always provide both Vue and Svelte versions** when creating or modifying stubs. Vue stubs go in `stubs/`, Svelte stubs go in `stubs/svelte/`.
+- Managed stubs (listed in `managedStubs()`) are force-overwritten on `saas:install --update`. Users should not edit them directly.
+- When adding a new managed stub, add it to `managedStubs()` in `src/Console/InstallCommand.php` and update `buildAgentSection()`.
+
 ## Install Command Rules
 
 When adding new publishable assets (Vue stubs, route files, config keys), always update `src/Console/InstallCommand.php`:

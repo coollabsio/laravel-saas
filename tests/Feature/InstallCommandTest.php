@@ -7,7 +7,7 @@ it('has the correct managed stubs for vue framework', function () {
 
     $stubs = (new ReflectionMethod($command, 'managedStubs'))->invoke($command, 'vue');
 
-    expect($stubs)->toHaveCount(6);
+    expect($stubs)->toHaveCount(7);
 
     foreach ($stubs as $source => $target) {
         expect($source)->toEndWith('.vue');
@@ -20,7 +20,7 @@ it('has the correct managed stubs for svelte framework', function () {
 
     $stubs = (new ReflectionMethod($command, 'managedStubs'))->invoke($command, 'svelte');
 
-    expect($stubs)->toHaveCount(6);
+    expect($stubs)->toHaveCount(7);
 
     foreach ($stubs as $source => $target) {
         expect($source)->toEndWith('.svelte');
@@ -334,111 +334,3 @@ return Application::configure(basePath: dirname(__DIR__))
 PHP);
 });
 
-it('patchLoginPage adds dev credentials prefill for vue', function () {
-    $dir = resource_path('js/pages/auth');
-    @mkdir($dir, 0755, true);
-
-    file_put_contents(resource_path('js/pages/auth/Login.vue'), <<<'VUE'
-<script setup lang="ts">
-import { useForm } from '@inertiajs/vue3';
-
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
-</script>
-VUE);
-
-    $command = new InstallCommand;
-    $command->setLaravel($this->app);
-    $command->setOutput(new \Illuminate\Console\OutputStyle(new \Symfony\Component\Console\Input\ArrayInput([]), new \Symfony\Component\Console\Output\NullOutput));
-    (new ReflectionMethod($command, 'patchLoginPage'))->invoke($command, 'vue');
-
-    $contents = file_get_contents(resource_path('js/pages/auth/Login.vue'));
-
-    expect($contents)->toContain('usePage')
-        ->and($contents)->toContain('const page = usePage()')
-        ->and($contents)->toContain("page.props.dev?.email ?? ''")
-        ->and($contents)->toContain("page.props.dev?.password ?? ''");
-
-    @unlink(resource_path('js/pages/auth/Login.vue'));
-});
-
-it('patchLoginPage is idempotent for vue', function () {
-    $dir = resource_path('js/pages/auth');
-    @mkdir($dir, 0755, true);
-
-    file_put_contents(resource_path('js/pages/auth/Login.vue'), <<<'VUE'
-<script setup lang="ts">
-import { useForm, usePage } from '@inertiajs/vue3';
-
-const page = usePage()
-const form = useForm({
-    email: page.props.dev?.email ?? '',
-    password: page.props.dev?.password ?? '',
-    remember: false,
-});
-</script>
-VUE);
-
-    $command = new InstallCommand;
-    $command->setLaravel($this->app);
-    $command->setOutput(new \Illuminate\Console\OutputStyle(new \Symfony\Component\Console\Input\ArrayInput([]), new \Symfony\Component\Console\Output\NullOutput));
-    (new ReflectionMethod($command, 'patchLoginPage'))->invoke($command, 'vue');
-
-    $contents = file_get_contents(resource_path('js/pages/auth/Login.vue'));
-
-    expect(substr_count($contents, 'dev?.email'))->toBe(1);
-
-    @unlink(resource_path('js/pages/auth/Login.vue'));
-});
-
-it('patchLoginPage adds dev credentials prefill for svelte', function () {
-    $dir = resource_path('js/pages/auth');
-    @mkdir($dir, 0755, true);
-
-    file_put_contents(resource_path('js/pages/auth/Login.svelte'), <<<'SVELTE'
-<script lang="ts">
-    import { Form } from '@inertiajs/svelte';
-    import { store } from '@/routes/login';
-</script>
-
-<Form {...store.form()} class="flex flex-col gap-6">
-    {#snippet children({ errors, processing })}
-        <Input
-            id="email"
-            type="email"
-            name="email"
-            required
-            autocomplete="email"
-            placeholder="email@example.com"
-        />
-        <Input
-            id="password"
-            type="password"
-            name="password"
-            required
-            autocomplete="current-password"
-            placeholder="Password"
-        />
-    {/snippet}
-</Form>
-SVELTE);
-
-    $command = new InstallCommand;
-    $command->setLaravel($this->app);
-    $command->setOutput(new \Illuminate\Console\OutputStyle(new \Symfony\Component\Console\Input\ArrayInput([]), new \Symfony\Component\Console\Output\NullOutput));
-    (new ReflectionMethod($command, 'patchLoginPage'))->invoke($command, 'svelte');
-
-    $contents = file_get_contents(resource_path('js/pages/auth/Login.svelte'));
-
-    expect($contents)->toContain(', page }')
-        ->and($contents)->toContain('value={$page.props.dev?.email')
-        ->and($contents)->toContain('value={$page.props.dev?.password');
-
-    // Verify page import was added only once
-    expect(substr_count($contents, "from '@inertiajs/svelte'"))->toBe(1);
-
-    @unlink(resource_path('js/pages/auth/Login.svelte'));
-});
