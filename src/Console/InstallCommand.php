@@ -922,23 +922,25 @@ PHP;
     protected function patchSvelteLoginPage(string $contents): string
     {
         // Inject page import if not present
-        if (! str_contains($contents, 'page')) {
+        if (! preg_match('/import\s*\{[^}]*\bpage\b[^}]*}\s*from\s*[\'"]@inertiajs\/svelte[\'"]/', $contents)) {
             $contents = preg_replace(
-                "/(import\s*\{[^}]*)(}\s*from\s*'@inertiajs\/svelte')/",
-                '$1, page $2',
+                "/(import\s*\{)([^}]*)(}\s*from\s*'@inertiajs\/svelte')/",
+                '$1$2, page $3',
                 $contents,
             );
         }
 
-        // Replace email and password initial values
+        // Add value attribute to email Input if not present
         $contents = preg_replace(
-            "/(email:\s*)''/",
-            '$1$page.props.dev?.email ?? \'\'',
+            '/(<Input\s[^>]*id="email"[^>]*)(\/?>)/',
+            '$1 value={$page.props.dev?.email ?? \'\'} $2',
             $contents,
         );
+
+        // Add value attribute to password Input if not present
         $contents = preg_replace(
-            "/(password:\s*)''/",
-            '$1$page.props.dev?.password ?? \'\'',
+            '/(<Input\s[^>]*id="password"[^>]*)(\/?>)/',
+            '$1 value={$page.props.dev?.password ?? \'\'} $2',
             $contents,
         );
 

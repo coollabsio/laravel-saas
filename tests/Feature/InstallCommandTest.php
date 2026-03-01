@@ -400,14 +400,30 @@ it('patchLoginPage adds dev credentials prefill for svelte', function () {
 
     file_put_contents(resource_path('js/pages/auth/Login.svelte'), <<<'SVELTE'
 <script lang="ts">
-    import { useForm } from '@inertiajs/svelte';
-
-    const form = useForm({
-        email: '',
-        password: '',
-        remember: false,
-    });
+    import { Form } from '@inertiajs/svelte';
+    import { store } from '@/routes/login';
 </script>
+
+<Form {...store.form()} class="flex flex-col gap-6">
+    {#snippet children({ errors, processing })}
+        <Input
+            id="email"
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="email@example.com"
+        />
+        <Input
+            id="password"
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="Password"
+        />
+    {/snippet}
+</Form>
 SVELTE);
 
     $command = new InstallCommand;
@@ -417,9 +433,12 @@ SVELTE);
 
     $contents = file_get_contents(resource_path('js/pages/auth/Login.svelte'));
 
-    expect($contents)->toContain('page')
-        ->and($contents)->toContain("\$page.props.dev?.email ?? ''")
-        ->and($contents)->toContain("\$page.props.dev?.password ?? ''");
+    expect($contents)->toContain(', page }')
+        ->and($contents)->toContain('value={$page.props.dev?.email')
+        ->and($contents)->toContain('value={$page.props.dev?.password');
+
+    // Verify page import was added only once
+    expect(substr_count($contents, "from '@inertiajs/svelte'"))->toBe(1);
 
     @unlink(resource_path('js/pages/auth/Login.svelte'));
 });
