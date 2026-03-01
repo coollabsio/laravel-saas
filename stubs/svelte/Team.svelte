@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { useForm, router } from '@inertiajs/svelte';
+    import { Form, router } from '@inertiajs/svelte';
     import { Trash2 } from 'lucide-svelte';
     import Heading from '@/components/Heading.svelte';
     import InputError from '@/components/InputError.svelte';
@@ -38,19 +38,9 @@
         },
     ];
 
-    const updateTeamForm = useForm({ name: team.name });
-    const inviteForm = useForm({ email: '', role: 'member' });
-
     let showDeleteDialog = $state(false);
     let deleting = $state(false);
     let deleteConfirmation = $state('');
-
-    function handleUpdateTeam(e: SubmitEvent) {
-        e.preventDefault();
-        $updateTeamForm.patch(
-            TeamController.update.url({ team: team.id }),
-        );
-    }
 
     function handleRoleChange(memberId: number, event: Event) {
         const role = (event.target as HTMLSelectElement).value;
@@ -81,16 +71,6 @@
         );
     }
 
-    function handleInvite(e: SubmitEvent) {
-        e.preventDefault();
-        $inviteForm.post(
-            TeamInvitationController.store.url({ team: team.id }),
-            {
-                onSuccess: () => $inviteForm.reset(),
-            },
-        );
-    }
-
     function deleteTeam() {
         deleting = true;
         router.delete(TeamController.destroy.url(team.id), {
@@ -111,23 +91,28 @@
         <div class="flex flex-col space-y-6">
             <Heading variant="small" title="Team name" description="Update your team's name" />
 
-            <form onsubmit={handleUpdateTeam} class="space-y-6">
-                <div class="grid gap-3">
-                    <Label for="name">Name</Label>
-                    <Input id="name" bind:value={$updateTeamForm.name} required disabled={!isOwner} />
-                    <InputError message={$updateTeamForm.errors.name} />
-                </div>
-
-                {#if isOwner}
-                    <div class="flex items-center gap-4">
-                        <Button disabled={$updateTeamForm.processing}>Save</Button>
-
-                        {#if $updateTeamForm.recentlySuccessful}
-                            <p class="text-sm text-neutral-600">Saved.</p>
-                        {/if}
+            <Form
+                {...TeamController.update.form({ team: team.id })}
+                class="space-y-6"
+            >
+                {#snippet children({ errors, processing, recentlySuccessful })}
+                    <div class="grid gap-3">
+                        <Label for="name">Name</Label>
+                        <Input id="name" name="name" value={team.name} required disabled={!isOwner} />
+                        <InputError message={errors.name} />
                     </div>
-                {/if}
-            </form>
+
+                    {#if isOwner}
+                        <div class="flex items-center gap-4">
+                            <Button disabled={processing}>Save</Button>
+
+                            {#if recentlySuccessful}
+                                <p class="text-sm text-neutral-600">Saved.</p>
+                            {/if}
+                        </div>
+                    {/if}
+                {/snippet}
+            </Form>
         </div>
 
         <!-- Members -->
@@ -194,34 +179,39 @@
             <div class="flex flex-col space-y-6">
                 <Heading variant="small" title="Invite team member" description="Invite a new member to your team by email" />
 
-                <form onsubmit={handleInvite} class="space-y-6">
-                    <div class="grid gap-3">
-                        <Label for="email">Email address</Label>
-                        <Input id="email" type="email" bind:value={$inviteForm.email} placeholder="email@example.com" required />
-                        <InputError message={$inviteForm.errors.email} />
-                    </div>
+                <Form
+                    {...TeamInvitationController.store.form({ team: team.id })}
+                    class="space-y-6"
+                >
+                    {#snippet children({ errors, processing, recentlySuccessful })}
+                        <div class="grid gap-3">
+                            <Label for="email">Email address</Label>
+                            <Input id="email" type="email" name="email" placeholder="email@example.com" required />
+                            <InputError message={errors.email} />
+                        </div>
 
-                    <div class="grid gap-3">
-                        <Label for="role">Role</Label>
-                        <select
-                            id="role"
-                            bind:value={$inviteForm.role}
-                            class="appearance-none block w-full min-w-0 rounded-sm border-2 border-input py-1.5 px-2 text-sm text-black bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow"
-                        >
-                            <option value="member">Member</option>
-                            <option value="owner">Owner</option>
-                        </select>
-                        <InputError message={$inviteForm.errors.role} />
-                    </div>
+                        <div class="grid gap-3">
+                            <Label for="role">Role</Label>
+                            <select
+                                id="role"
+                                name="role"
+                                class="appearance-none block w-full min-w-0 rounded-sm border-2 border-input py-1.5 px-2 text-sm text-black bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow"
+                            >
+                                <option value="member">Member</option>
+                                <option value="owner">Owner</option>
+                            </select>
+                            <InputError message={errors.role} />
+                        </div>
 
-                    <div class="flex items-center gap-4">
-                        <Button disabled={$inviteForm.processing}>Send Invitation</Button>
+                        <div class="flex items-center gap-4">
+                            <Button disabled={processing}>Send Invitation</Button>
 
-                        {#if $inviteForm.recentlySuccessful}
-                            <p class="text-sm text-neutral-600">Invitation sent.</p>
-                        {/if}
-                    </div>
-                </form>
+                            {#if recentlySuccessful}
+                                <p class="text-sm text-neutral-600">Invitation sent.</p>
+                            {/if}
+                        </div>
+                    {/snippet}
+                </Form>
             </div>
         {/if}
 

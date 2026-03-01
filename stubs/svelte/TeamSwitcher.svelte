@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { router, page } from '@inertiajs/svelte';
+    import { Form, router, page } from '@inertiajs/svelte';
     import { ChevronsUpDown, Check, Plus } from 'lucide-svelte';
     import AppLogoIcon from '@/components/AppLogoIcon.svelte';
     import {
@@ -34,9 +34,6 @@
     const { isMobile, state: sidebarState } = useSidebar();
 
     let showCreateDialog = $state(false);
-    let teamName = $state('');
-    let creating = $state(false);
-    let errors = $state<Record<string, string>>({});
 
     function handleTeamClick(team: Team) {
         if (team.id === currentTeam?.id) {
@@ -46,22 +43,6 @@
         }
     }
 
-    function handleCreateTeam() {
-        creating = true;
-        router.post(storeTeam().url, { name: teamName }, {
-            onSuccess: () => {
-                teamName = '';
-                errors = {};
-                showCreateDialog = false;
-            },
-            onError: (e) => {
-                errors = e;
-            },
-            onFinish: () => {
-                creating = false;
-            },
-        });
-    }
 </script>
 
 <SidebarMenu>
@@ -137,38 +118,43 @@
                 Create a new team to collaborate with others.
             </DialogDescription>
         </div>
-        <form onsubmit={(e) => { e.preventDefault(); handleCreateTeam(); }} class="space-y-4">
-            <div class="space-y-2">
-                <Label for="team-name">Team name</Label>
-                <Input
-                    id="team-name"
-                    value={teamName}
-                    oninput={(e) => teamName = e.currentTarget.value}
-                    placeholder="My Team"
-                    autofocus
-                />
-                {#if errors.name}
-                    <p class="text-sm text-destructive">
-                        {errors.name}
-                    </p>
-                {/if}
-            </div>
-            <DialogFooter>
-                <button
-                    type="button"
-                    class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                    onclick={() => showCreateDialog = false}
-                >
-                    Cancel
-                </button>
-                <button
-                    type="submit"
-                    class="inline-flex h-9 items-center justify-center rounded-sm bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                    disabled={creating || !teamName.trim()}
-                >
-                    {creating ? 'Creating...' : 'Create'}
-                </button>
-            </DialogFooter>
-        </form>
+        <Form
+            {...storeTeam().form()}
+            class="space-y-4"
+            onSuccess={() => { showCreateDialog = false; }}
+        >
+            {#snippet children({ errors, processing })}
+                <div class="space-y-2">
+                    <Label for="team-name">Team name</Label>
+                    <Input
+                        id="team-name"
+                        name="name"
+                        placeholder="My Team"
+                        autofocus
+                    />
+                    {#if errors.name}
+                        <p class="text-sm text-destructive">
+                            {errors.name}
+                        </p>
+                    {/if}
+                </div>
+                <DialogFooter>
+                    <button
+                        type="button"
+                        class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                        onclick={() => showCreateDialog = false}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="inline-flex h-9 items-center justify-center rounded-sm bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                        disabled={processing}
+                    >
+                        {processing ? 'Creating...' : 'Create'}
+                    </button>
+                </DialogFooter>
+            {/snippet}
+        </Form>
     </DialogContent>
 </Dialog>

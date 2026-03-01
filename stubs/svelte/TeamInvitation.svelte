@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { router, page } from '@inertiajs/svelte';
+    import { Form, page } from '@inertiajs/svelte';
     import { Button } from '@/components/ui/button';
     import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamInvitationController';
     import type { TeamInvitation } from '@/types';
@@ -11,14 +11,6 @@
     let { invitation }: Props = $props();
 
     const isAuthenticated = $derived(!!$page.props.auth?.user);
-
-    function acceptInvitation() {
-        router.post(
-            TeamInvitationController.process.url({
-                token: invitation.token,
-            }),
-        );
-    }
 </script>
 
 <svelte:head><title>Team Invitation</title></svelte:head>
@@ -38,11 +30,15 @@
 
         {#if isAuthenticated}
             <div class="space-y-4">
-                <form onsubmit={(e) => { e.preventDefault(); acceptInvitation(); }}>
-                    <Button class="w-full" type="submit">
-                        Accept Invitation
-                    </Button>
-                </form>
+                <Form
+                    {...TeamInvitationController.process.form({ token: invitation.token })}
+                >
+                    {#snippet children({ processing })}
+                        <Button class="w-full" disabled={processing}>
+                            Accept Invitation
+                        </Button>
+                    {/snippet}
+                </Form>
             </div>
         {:else}
             <div class="space-y-4 text-center">
