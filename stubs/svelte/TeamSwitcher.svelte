@@ -87,23 +87,33 @@
                     Teams
                 </DropdownMenuLabel>
                 {#each teams ?? [] as team (team.id)}
-                    <DropdownMenuItem
-                        class="cursor-pointer p-2"
-                        onclick={() => handleTeamClick(team)}
-                    >
-                        {team.name}
-                        {#if team.id === currentTeam?.id}
-                            <Check class="ml-auto size-4" />
-                        {/if}
+                    <DropdownMenuItem asChild>
+                        {#snippet children(itemProps)}
+                            <button
+                                {...itemProps}
+                                class="{itemProps.class} p-2"
+                                onclick={(e) => { itemProps.onClick?.(e); handleTeamClick(team); }}
+                            >
+                                {team.name}
+                                {#if team.id === currentTeam?.id}
+                                    <Check class="ml-auto size-4" />
+                                {/if}
+                            </button>
+                        {/snippet}
                     </DropdownMenuItem>
                 {/each}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    class="cursor-pointer gap-2 p-2"
-                    onclick={() => showCreateDialog = true}
-                >
-                    <Plus class="size-4" />
-                    Create Team
+                <DropdownMenuItem asChild>
+                    {#snippet children(itemProps)}
+                        <button
+                            {...itemProps}
+                            class="{itemProps.class} gap-2 p-2"
+                            onclick={(e) => { itemProps.onClick?.(e); showCreateDialog = true; }}
+                        >
+                            <Plus class="size-4" />
+                            Create Team
+                        </button>
+                    {/snippet}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
