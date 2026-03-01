@@ -266,7 +266,9 @@ PHP);
     $contents = file_get_contents(base_path('routes/web.php'));
 
     expect($contents)->toContain("Route::inertia('/'")
-        ->and($contents)->not->toContain("Route::inertia('dashboard'");
+        ->and($contents)->not->toContain("Route::inertia('dashboard'")
+        ->and($contents)->toContain("->name('home')")
+        ->and($contents)->not->toContain("->name('dashboard')");
 
     @unlink(base_path('routes/web.php'));
 });
@@ -287,7 +289,8 @@ PHP);
 
     $contents = file_get_contents(base_path('routes/web.php'));
 
-    expect($contents)->toContain("Route::get('/'");
+    expect($contents)->toContain("Route::get('/'")
+        ->and($contents)->toContain("->name('home')");
 
     @unlink(base_path('routes/web.php'));
 });

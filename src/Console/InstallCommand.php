@@ -762,6 +762,13 @@ PHP;
             $contents,
         );
 
+        // Rename ->name('dashboard') to ->name('home') so Wayfinder generates a `home` export
+        $updated = preg_replace(
+            "/->name\(\s*'dashboard'\s*\)/",
+            "->name('home')",
+            $updated,
+        );
+
         if ($updated === $contents) {
             $this->line('Dashboard route already patched or not found.');
 
@@ -769,7 +776,7 @@ PHP;
         }
 
         file_put_contents($path, $updated);
-        $this->info("Updated dashboard route from '/dashboard' to '/'.");
+        $this->info("Updated dashboard route to '/' with name 'home'.");
     }
 
     protected function patchSidebar(string $framework): void
