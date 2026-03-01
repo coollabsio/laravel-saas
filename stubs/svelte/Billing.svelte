@@ -58,9 +58,9 @@
     }
 </script>
 
-<AppLayout breadcrumbs={breadcrumbItems}>
-    <svelte:head><title>Billing</title></svelte:head>
+<svelte:head><title>Billing</title></svelte:head>
 
+<AppLayout breadcrumbs={breadcrumbItems}>
     <h1 class="sr-only">Billing</h1>
 
     <SettingsLayout>

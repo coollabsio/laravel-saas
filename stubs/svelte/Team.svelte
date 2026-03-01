@@ -87,9 +87,9 @@
     }
 </script>
 
-<AppLayout breadcrumbs={breadcrumbItems}>
-    <svelte:head><title>Team settings</title></svelte:head>
+<svelte:head><title>Team settings</title></svelte:head>
 
+<AppLayout breadcrumbs={breadcrumbItems}>
     <h1 class="sr-only">Team Settings</h1>
 
     <SettingsLayout>

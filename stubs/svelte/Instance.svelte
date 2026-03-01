@@ -31,9 +31,9 @@
     }
 </script>
 
-<AppLayout breadcrumbs={breadcrumbItems}>
-    <svelte:head><title>Instance settings</title></svelte:head>
+<svelte:head><title>Instance settings</title></svelte:head>
 
+<AppLayout breadcrumbs={breadcrumbItems}>
     <h1 class="sr-only">Instance Settings</h1>
 
     <SettingsLayout>

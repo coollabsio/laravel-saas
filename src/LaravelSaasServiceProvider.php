@@ -63,6 +63,7 @@ class LaravelSaasServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
             __DIR__.'/../stubs/TeamSwitcher.vue' => resource_path('js/components/TeamSwitcher.vue'),
             __DIR__.'/../stubs/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
+            __DIR__.'/../stubs/components/NativeCheckbox.vue' => resource_path('js/components/NativeCheckbox.vue'),
         ], 'saas-vue');
 
         $this->publishes([
@@ -71,6 +72,7 @@ class LaravelSaasServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/svelte/TeamInvitation.svelte' => resource_path('js/pages/TeamInvitation.svelte'),
             __DIR__.'/../stubs/svelte/TeamSwitcher.svelte' => resource_path('js/components/TeamSwitcher.svelte'),
             __DIR__.'/../stubs/svelte/Instance.svelte' => resource_path('js/pages/settings/Instance.svelte'),
+            __DIR__.'/../stubs/svelte/components/NativeCheckbox.svelte' => resource_path('js/components/NativeCheckbox.svelte'),
         ], 'saas-svelte');
 
         $this->publishes([
