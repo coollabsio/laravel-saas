@@ -247,6 +247,51 @@ PHP);
     @unlink(config_path('fortify.php'));
 });
 
+it('patchWebRoutes changes dashboard route to /', function () {
+    @mkdir(base_path('routes'), 0755, true);
+
+    file_put_contents(base_path('routes/web.php'), <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::inertia('dashboard', 'Dashboard')->middleware(['auth', 'verified'])->name('dashboard');
+PHP);
+
+    $command = new InstallCommand;
+    $command->setLaravel($this->app);
+    $command->setOutput(new \Illuminate\Console\OutputStyle(new \Symfony\Component\Console\Input\ArrayInput([]), new \Symfony\Component\Console\Output\NullOutput));
+    (new ReflectionMethod($command, 'patchWebRoutes'))->invoke($command);
+
+    $contents = file_get_contents(base_path('routes/web.php'));
+
+    expect($contents)->toContain("Route::inertia('/'")
+        ->and($contents)->not->toContain("Route::inertia('dashboard'");
+
+    @unlink(base_path('routes/web.php'));
+});
+
+it('patchWebRoutes works with Route::get syntax', function () {
+    @mkdir(base_path('routes'), 0755, true);
+
+    file_put_contents(base_path('routes/web.php'), <<<'PHP'
+<?php
+
+Route::get('dashboard', function () { return Inertia::render('Dashboard'); })->name('dashboard');
+PHP);
+
+    $command = new InstallCommand;
+    $command->setLaravel($this->app);
+    $command->setOutput(new \Illuminate\Console\OutputStyle(new \Symfony\Component\Console\Input\ArrayInput([]), new \Symfony\Component\Console\Output\NullOutput));
+    (new ReflectionMethod($command, 'patchWebRoutes'))->invoke($command);
+
+    $contents = file_get_contents(base_path('routes/web.php'));
+
+    expect($contents)->toContain("Route::get('/'");
+
+    @unlink(base_path('routes/web.php'));
+});
+
 it('patchBootstrapMiddleware adds ShareSaasProps', function () {
     file_put_contents(base_path('bootstrap/app.php'), <<<'PHP'
 <?php

@@ -57,6 +57,7 @@ class InstallCommand extends Command
         $this->patchUserFactory();
         $this->patchFortifyConfig();
         $this->patchBootstrapMiddleware();
+        $this->patchWebRoutes();
         $this->publishPlanEnum();
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
@@ -92,6 +93,7 @@ class InstallCommand extends Command
         $this->patchUserFactory();
         $this->patchFortifyConfig();
         $this->patchBootstrapMiddleware();
+        $this->patchWebRoutes();
         $this->publishPlanEnum();
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
@@ -739,6 +741,35 @@ PHP;
 
         file_put_contents($path, $contents);
         $this->info('Added ShareSaasProps middleware to bootstrap/app.php.');
+    }
+
+    protected function patchWebRoutes(): void
+    {
+        $path = base_path('routes/web.php');
+
+        if (! file_exists($path)) {
+            $this->warn('routes/web.php not found, skipping dashboard route patch.');
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        // Change Route::get('dashboard', ...) or Route::inertia('dashboard', ...) to use '/' instead
+        $updated = preg_replace(
+            "/Route::(get|inertia)\(\s*'dashboard'/",
+            "Route::$1('/'",
+            $contents,
+        );
+
+        if ($updated === $contents) {
+            $this->line('Dashboard route already patched or not found.');
+
+            return;
+        }
+
+        file_put_contents($path, $updated);
+        $this->info("Updated dashboard route from '/dashboard' to '/'.");
     }
 
     protected function patchSidebar(string $framework): void
