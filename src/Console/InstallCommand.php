@@ -390,10 +390,25 @@ class InstallCommand extends Command
 
     protected function publishDesignComponents(): void
     {
-        $source = dirname(__DIR__, 2).'/stubs/ui';
+        $framework = $this->frontend();
+        $source = dirname(__DIR__, 2).'/stubs/ui-'.$framework;
+
+        if (! is_dir($source)) {
+            $source = dirname(__DIR__, 2).'/stubs/ui';
+        }
 
         if (! is_dir($source)) {
             $this->warn('Design system UI components not found.');
+
+            return;
+        }
+
+        // Only publish if the UI components match the chosen framework
+        $extension = $framework === 'svelte' ? '.svelte' : '.vue';
+        $sampleFile = glob($source.'/**/*'.$extension) ?: glob($source.'/*'.$extension);
+
+        if (empty($sampleFile)) {
+            $this->warn("No {$framework} design system UI components found, skipping.");
 
             return;
         }
