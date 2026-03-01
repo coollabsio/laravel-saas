@@ -396,17 +396,22 @@ class InstallCommand extends Command
 
     protected function publishDesignComponents(): void
     {
+        $framework = $this->frontend();
         $base = dirname(__DIR__, 2).'/stubs';
 
-        // Publish Coolify-themed shadcn UI components
+        // Publish Coolify-themed shadcn UI components (Vue only — Svelte apps use their own shadcn-svelte components)
         $uiSource = $base.'/ui';
 
-        if (is_dir($uiSource)) {
+        if ($framework !== 'svelte' && is_dir($uiSource)) {
             $this->copyDirectory($uiSource, resource_path('js/components/ui'));
             $this->info('Published Coolify-themed UI components.');
         }
 
-        // Publish Coolify-themed non-UI components (Heading, AppHeader, etc.)
+        // Publish Coolify-themed non-UI components (Heading, AppHeader, etc.) — Vue only
+        if ($framework === 'svelte') {
+            return;
+        }
+
         $designSource = $base.'/design';
 
         if (! is_dir($designSource)) {
