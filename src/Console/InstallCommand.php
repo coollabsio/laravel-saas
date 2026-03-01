@@ -43,6 +43,8 @@ class InstallCommand extends Command
 
         $this->configureModels();
         $this->publishPlanEnum();
+        $this->patchSidebar($framework);
+        $this->patchSettingsLayout($framework);
         $this->publishAiDocs();
         $this->injectAgentSections();
         $this->registerTestSuite();
@@ -70,6 +72,8 @@ class InstallCommand extends Command
         $this->forcePublish($this->managedStubs($framework));
         $this->configureModels();
         $this->publishPlanEnum();
+        $this->patchSidebar($framework);
+        $this->patchSettingsLayout($framework);
         $this->publishAiDocs();
         $this->injectAgentSections();
 
@@ -378,6 +382,254 @@ This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode
 - Self-hosted mode: `SELF_HOSTED=true` disables billing, first user becomes root
 - Root users bypass `plan` and `subscribed` middleware
 MD;
+    }
+
+    protected function patchSidebar(string $framework): void
+    {
+        $ext = $framework === 'svelte' ? 'svelte' : 'vue';
+        $path = resource_path("js/components/AppSidebar.{$ext}");
+
+        if (! file_exists($path)) {
+            $this->warn("AppSidebar.{$ext} not found, skipping sidebar patch.");
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'TeamSwitcher')) {
+            $this->line('AppSidebar already contains TeamSwitcher.');
+
+            return;
+        }
+
+        $importLine = $framework === 'svelte'
+            ? "    import TeamSwitcher from '@/components/TeamSwitcher.svelte';"
+            : "import TeamSwitcher from '@/components/TeamSwitcher.vue';";
+
+        // Inject import after the last existing component import
+        $lastImportPattern = $framework === 'svelte'
+            ? "/(    import [^;]+from '@\/components\/[^']+';)/s"
+            : "/(import [^;]+from '@\/components\/[^']+';)/s";
+
+        if (preg_match_all($lastImportPattern, $contents, $matches, PREG_OFFSET_CAPTURE)) {
+            $lastMatch = end($matches[0]);
+            $insertPos = $lastMatch[1] + strlen($lastMatch[0]);
+            $contents = substr($contents, 0, $insertPos)."\n".$importLine.substr($contents, $insertPos);
+        }
+
+        // Replace <SidebarHeader> block with TeamSwitcher
+        $contents = preg_replace(
+            '/<SidebarHeader>.*?<\/SidebarHeader>/s',
+            "<SidebarHeader>\n        <TeamSwitcher />\n    </SidebarHeader>",
+            $contents,
+        );
+
+        file_put_contents($path, $contents);
+        $this->info("Patched AppSidebar.{$ext} with TeamSwitcher.");
+    }
+
+    protected function patchSettingsLayout(string $framework): void
+    {
+        $ext = $framework === 'svelte' ? 'svelte' : 'vue';
+        $path = resource_path("js/layouts/settings/Layout.{$ext}");
+
+        if (! file_exists($path)) {
+            $this->warn("settings/Layout.{$ext} not found, skipping settings layout patch.");
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'editTeam')) {
+            $this->line('Settings layout already contains team nav items.');
+
+            return;
+        }
+
+        if ($framework === 'svelte') {
+            $contents = $this->patchSvelteSettingsLayout($contents);
+        } else {
+            $contents = $this->patchVueSettingsLayout($contents);
+        }
+
+        file_put_contents($path, $contents);
+        $this->info("Patched settings/Layout.{$ext} with Team, Billing, and Instance nav items.");
+    }
+
+    protected function patchSvelteSettingsLayout(string $contents): string
+    {
+        // Add page import
+        $contents = str_replace(
+            "import { Link } from '@inertiajs/svelte';",
+            "import { Link, page } from '@inertiajs/svelte';",
+            $contents,
+        );
+
+        // Add route imports after the last existing route import
+        $routeImports = <<<'IMPORTS'
+    import { index as billingIndex } from '@/routes/billing';
+    import { edit as editInstance } from '@/routes/instance-settings';
+    import { edit as editTeam } from '@/routes/teams';
+IMPORTS;
+
+        $contents = preg_replace(
+            "/(    import [^;]+from '@\/routes\/[^']+';)(?!.*    import [^;]+from '@\/routes\/)/s",
+            "$1\n".$routeImports,
+            $contents,
+        );
+
+        // Replace static array with $derived.by()
+        $newNav = <<<'NAV'
+    const sidebarNavItems: NavItem[] = $derived.by(() => {
+        const items: NavItem[] = [
+            {
+                title: 'Profile',
+                href: editProfile(),
+            },
+            {
+                title: 'Team',
+                href: editTeam(),
+            },
+            {
+                title: 'Password',
+                href: editPassword(),
+            },
+            {
+                title: 'Two-factor auth',
+                href: show(),
+            },
+            {
+                title: 'Appearance',
+                href: editAppearance(),
+            },
+        ];
+
+        if ($page.props.billing?.enabled) {
+            items.push({
+                title: 'Billing',
+                href: billingIndex(),
+            });
+        }
+
+        if ($page.props.instance?.isRootUser) {
+            items.push({
+                title: 'Instance',
+                href: editInstance(),
+            });
+        }
+
+        return items;
+    });
+NAV;
+
+        $contents = preg_replace(
+            '/    const sidebarNavItems: NavItem\[\] = \[.*?\];/s',
+            $newNav,
+            $contents,
+        );
+
+        return $contents;
+    }
+
+    protected function patchVueSettingsLayout(string $contents): string
+    {
+        // Add usePage import
+        if (! str_contains($contents, 'usePage')) {
+            $contents = str_replace(
+                "import { Link } from '@inertiajs/vue3';",
+                "import { Link, usePage } from '@inertiajs/vue3';",
+                $contents,
+            );
+        }
+
+        // Add computed import if not present
+        if (! str_contains($contents, 'computed')) {
+            $contents = str_replace(
+                "import { Link, usePage } from '@inertiajs/vue3';",
+                "import { Link, usePage } from '@inertiajs/vue3';\nimport { computed } from 'vue';",
+                $contents,
+            );
+        }
+
+        // Add route imports after the last existing route import
+        $routeImports = <<<'IMPORTS'
+import { index as billingIndex } from '@/routes/billing';
+import { edit as editInstance } from '@/routes/instance-settings';
+IMPORTS;
+
+        // Add editTeam import if not present
+        if (! str_contains($contents, 'editTeam')) {
+            $routeImports .= "\nimport { edit as editTeam } from '@/routes/teams';";
+        }
+
+        $contents = preg_replace(
+            "/(import [^;]+from '@\/routes\/[^']+';)(?!.*import [^;]+from '@\/routes\/)/s",
+            "$1\n".$routeImports,
+            $contents,
+        );
+
+        // Add page const if not present
+        if (! str_contains($contents, 'const page = usePage()')) {
+            $contents = str_replace(
+                "import { type NavItem } from '@/types';",
+                "import { type NavItem } from '@/types';\n\nconst page = usePage();",
+                $contents,
+            );
+        }
+
+        // Replace static array with computed
+        $newNav = <<<'NAV'
+const sidebarNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Profile',
+            href: editProfile(),
+        },
+        {
+            title: 'Team',
+            href: editTeam(),
+        },
+        {
+            title: 'Password',
+            href: editPassword(),
+        },
+        {
+            title: 'Two-Factor Auth',
+            href: show(),
+        },
+        {
+            title: 'Appearance',
+            href: editAppearance(),
+        },
+    ];
+
+    if (page.props.billing?.enabled) {
+        items.push({
+            title: 'Billing',
+            href: billingIndex(),
+        });
+    }
+
+    if (page.props.instance?.isRootUser) {
+        items.push({
+            title: 'Instance',
+            href: editInstance(),
+        });
+    }
+
+    return items;
+});
+NAV;
+
+        $contents = preg_replace(
+            '/const sidebarNavItems:?\s*(?:NavItem\[\]|) = (?:computed<NavItem\[\]>\()?\[.*?\];?\s*(?:\);\s*)?/s',
+            $newNav,
+            $contents,
+        );
+
+        return $contents;
     }
 
     protected function registerTestSuite(): void
