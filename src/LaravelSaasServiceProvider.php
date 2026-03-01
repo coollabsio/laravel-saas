@@ -66,6 +66,14 @@ class LaravelSaasServiceProvider extends ServiceProvider
         ], 'saas-vue');
 
         $this->publishes([
+            __DIR__.'/../stubs/svelte/Team.svelte' => resource_path('js/pages/settings/Team.svelte'),
+            __DIR__.'/../stubs/svelte/Billing.svelte' => resource_path('js/pages/settings/Billing.svelte'),
+            __DIR__.'/../stubs/svelte/TeamInvitation.svelte' => resource_path('js/pages/TeamInvitation.svelte'),
+            __DIR__.'/../stubs/svelte/TeamSwitcher.svelte' => resource_path('js/components/TeamSwitcher.svelte'),
+            __DIR__.'/../stubs/svelte/Instance.svelte' => resource_path('js/pages/settings/Instance.svelte'),
+        ], 'saas-svelte');
+
+        $this->publishes([
             __DIR__.'/../routes/teams.php' => base_path('routes/saas-teams.php'),
             __DIR__.'/../routes/billing.php' => base_path('routes/saas-billing.php'),
             __DIR__.'/../routes/instance.php' => base_path('routes/saas-instance.php'),

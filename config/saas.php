@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'frontend' => env('SAAS_FRONTEND', 'vue'),
+
     'self_hosted' => env('SELF_HOSTED', false),
 
     'require_subscription' => env('REQUIRE_SUBSCRIPTION', false),

@@ -4,6 +4,8 @@ namespace Coollabsio\LaravelSaas\Console;
 
 use Illuminate\Console\Command;
 
+use function Laravel\Prompts\select;
+
 class InstallCommand extends Command
 {
     protected $signature = 'saas:install {--update : Update existing installation with new/changed stubs}';
@@ -20,8 +22,18 @@ class InstallCommand extends Command
 
         $this->info('Installing Laravel SaaS...');
 
+        $framework = select(
+            label: 'Which frontend framework are you using?',
+            options: [
+                'vue' => 'Vue 3 (Inertia + shadcn-vue)',
+                'svelte' => 'Svelte 5 (Inertia + shadcn-svelte)',
+            ],
+            default: 'vue',
+        );
+
         $this->call('vendor:publish', ['--tag' => 'saas-config']);
-        $this->call('vendor:publish', ['--tag' => 'saas-vue']);
+        $this->setFrontendConfig($framework);
+        $this->call('vendor:publish', ['--tag' => "saas-{$framework}"]);
         $this->call('vendor:publish', ['--tag' => 'saas-routes']);
 
         $this->configureModels();
@@ -44,11 +56,13 @@ class InstallCommand extends Command
 
     protected function handleUpdate(): void
     {
-        $this->info('Updating Laravel SaaS stubs...');
+        $framework = $this->frontend();
 
-        $this->publishIfMissing('saas-vue', $this->vueStubs());
+        $this->info("Updating Laravel SaaS stubs (framework: {$framework})...");
+
+        $this->publishIfMissing("saas-{$framework}", $this->frontendStubs($framework));
         $this->publishIfMissing('saas-routes', $this->routeStubs());
-        $this->forcePublish($this->managedStubs());
+        $this->forcePublish($this->managedStubs($framework));
         $this->configureModels();
         $this->publishPlanEnum();
         $this->publishAiDocs();
@@ -64,6 +78,31 @@ class InstallCommand extends Command
         $this->info('Update complete. Run `php artisan migrate` to apply any new migrations.');
     }
 
+    protected function frontend(): string
+    {
+        return config('saas.frontend', 'vue');
+    }
+
+    protected function setFrontendConfig(string $framework): void
+    {
+        $path = config_path('saas.php');
+
+        if (! file_exists($path)) {
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        $contents = preg_replace(
+            "/'frontend'\s*=>\s*env\('SAAS_FRONTEND',\s*'[^']+'\)/",
+            "'frontend' => env('SAAS_FRONTEND', '{$framework}')",
+            $contents,
+        );
+
+        file_put_contents($path, $contents);
+        $this->info("Frontend framework set to [{$framework}].");
+    }
+
     protected function forcePublish(array $files): void
     {
         foreach ($files as $source => $target) {
@@ -76,17 +115,22 @@ class InstallCommand extends Command
         }
     }
 
-    protected function managedStubs(): array
+    /**
+     * @return array<string, string>
+     */
+    protected function managedStubs(string $framework = 'vue'): array
     {
         $base = dirname(__DIR__, 2).'/stubs';
+        $ext = $framework === 'svelte' ? 'svelte' : 'vue';
+        $dir = $framework === 'svelte' ? $base.'/svelte' : $base;
 
         return [
-            $base.'/Team.vue' => resource_path('js/pages/settings/Team.vue'),
-            $base.'/Billing.vue' => resource_path('js/pages/settings/Billing.vue'),
-            $base.'/Instance.vue' => resource_path('js/pages/settings/Instance.vue'),
-            $base.'/TeamInvitation.vue' => resource_path('js/pages/TeamInvitation.vue'),
-            $base.'/TeamSwitcher.vue' => resource_path('js/components/TeamSwitcher.vue'),
-            $base.'/components/NativeCheckbox.vue' => resource_path('js/components/NativeCheckbox.vue'),
+            $dir."/Team.{$ext}" => resource_path("js/pages/settings/Team.{$ext}"),
+            $dir."/Billing.{$ext}" => resource_path("js/pages/settings/Billing.{$ext}"),
+            $dir."/Instance.{$ext}" => resource_path("js/pages/settings/Instance.{$ext}"),
+            $dir."/TeamInvitation.{$ext}" => resource_path("js/pages/TeamInvitation.{$ext}"),
+            $dir."/TeamSwitcher.{$ext}" => resource_path("js/components/TeamSwitcher.{$ext}"),
+            $dir."/components/NativeCheckbox.{$ext}" => resource_path("js/components/NativeCheckbox.{$ext}"),
         ];
     }
 
@@ -110,10 +154,11 @@ class InstallCommand extends Command
         }
     }
 
-    protected function vueStubs(): array
+    /**
+     * @return array<string, string>
+     */
+    protected function frontendStubs(string $framework = 'vue'): array
     {
-        $base = dirname(__DIR__, 2).'/stubs';
-
         return [];
     }
 
@@ -295,20 +340,25 @@ class InstallCommand extends Command
 
     protected function buildAgentSection(): string
     {
-        return <<<'MD'
+        $framework = $this->frontend();
+        $ext = $framework === 'svelte' ? 'svelte' : 'vue';
+        $label = $framework === 'svelte' ? 'Svelte' : 'Vue';
+
+        return <<<MD
 ## Laravel SaaS Package
 
 This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode.
 
 - Package docs: `.ai/laravel-saas/` (BILLING.md, EMAILS.md, PLAN_GATING.md, SELF_HOSTED.md)
 - Config: `config/saas.php`
-- Managed Vue stubs (do not edit directly — overwritten on `saas:install --update`):
-  - `resources/js/pages/settings/Team.vue`
-  - `resources/js/pages/settings/Billing.vue`
-  - `resources/js/pages/settings/Instance.vue`
-  - `resources/js/pages/TeamInvitation.vue`
-  - `resources/js/components/TeamSwitcher.vue`
-  - `resources/js/components/NativeCheckbox.vue`
+- Frontend framework: {$label}
+- Managed {$label} stubs (do not edit directly — overwritten on `saas:install --update`):
+  - `resources/js/pages/settings/Team.{$ext}`
+  - `resources/js/pages/settings/Billing.{$ext}`
+  - `resources/js/pages/settings/Instance.{$ext}`
+  - `resources/js/pages/TeamInvitation.{$ext}`
+  - `resources/js/components/TeamSwitcher.{$ext}`
+  - `resources/js/components/NativeCheckbox.{$ext}`
 - User model must use `Coollabsio\LaravelSaas\Concerns\HasTeams` trait
 - Registration action must use `Coollabsio\LaravelSaas\Concerns\CreatesPersonalTeam` trait
 - `ShareSaasProps` middleware shares `currentTeam`, `teams`, `billing`, and `instance` Inertia props
