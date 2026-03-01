@@ -17,6 +17,9 @@ class BillingController extends Controller
         abort_unless(Billing::enabled(), 404);
 
         $team = $request->user()->currentTeam;
+
+        abort_unless($team, 404, 'No team selected. Please create or join a team first.');
+
         $planEnum = Billing::planEnum();
 
         $availablePlans = collect($planEnum::paid())
@@ -45,6 +48,8 @@ class BillingController extends Controller
 
         $team = $request->user()->currentTeam;
 
+        abort_unless($team, 404, 'No team selected.');
+
         if (Billing::isDynamic()) {
             $checkout = $team->newSubscription('default', Billing::dynamicPriceId())
                 ->checkout([
@@ -70,8 +75,12 @@ class BillingController extends Controller
     {
         abort_unless(Billing::enabled(), 404);
 
+        $team = $request->user()->currentTeam;
+
+        abort_unless($team, 404, 'No team selected.');
+
         return Inertia::location(
-            $request->user()->currentTeam->billingPortalUrl(route('billing.index'))
+            $team->billingPortalUrl(route('billing.index'))
         );
     }
 }

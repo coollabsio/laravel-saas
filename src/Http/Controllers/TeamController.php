@@ -35,6 +35,8 @@ class TeamController extends Controller
     {
         $team = $request->user()->currentTeam;
 
+        abort_unless($team, 404, 'No team selected. Please create or join a team first.');
+
         return Inertia::render('settings/Team', [
             'team' => $team,
             'members' => $team->users()->get()->map(fn ($user) => [
