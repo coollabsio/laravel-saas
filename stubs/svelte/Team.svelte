@@ -43,6 +43,7 @@
 
     let showDeleteDialog = $state(false);
     let deleting = $state(false);
+    let deleteConfirmation = $state('');
 
     function handleUpdateTeam(e: SubmitEvent) {
         e.preventDefault();
@@ -236,13 +237,25 @@
         {/if}
     </SettingsLayout>
 
-    <Dialog bind:open={showDeleteDialog}>
+    <Dialog bind:open={showDeleteDialog} onOpenChange={(open) => { if (!open) deleteConfirmation = ''; }}>
         <DialogContent class="sm:max-w-md">
             <div class="flex flex-col space-y-1.5 text-center sm:text-left">
                 <DialogTitle>Delete team</DialogTitle>
                 <DialogDescription>
-                    Are you sure you want to delete this team? This will permanently delete the team and all of its data. This action cannot be undone.
+                    This will permanently delete the team and all of its data. This action cannot be undone.
                 </DialogDescription>
+            </div>
+            <div class="space-y-2">
+                <Label for="delete-confirmation">
+                    Type <span class="font-semibold">{team.name}</span> to confirm
+                </Label>
+                <Input
+                    id="delete-confirmation"
+                    value={deleteConfirmation}
+                    oninput={(e) => deleteConfirmation = e.currentTarget.value}
+                    placeholder={team.name}
+                    autocomplete="off"
+                />
             </div>
             <DialogFooter>
                 <button
@@ -255,7 +268,7 @@
                 <button
                     type="button"
                     class="inline-flex h-9 items-center justify-center rounded-sm bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-                    disabled={deleting}
+                    disabled={deleting || deleteConfirmation !== team.name}
                     onclick={deleteTeam}
                 >
                     {deleting ? 'Deleting...' : 'Delete'}

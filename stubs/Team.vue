@@ -34,6 +34,7 @@ type Props = {
 const props = defineProps<Props>();
 const showDeleteDialog = ref(false);
 const deleting = ref(false);
+const deleteConfirmation = ref('');
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -209,14 +210,25 @@ const deleteTeam = () => {
             </div>
         </SettingsLayout>
 
-        <Dialog v-model:open="showDeleteDialog">
+        <Dialog v-model:open="showDeleteDialog" @update:open="(open: boolean) => { if (!open) deleteConfirmation = '' }">
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Delete team</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete this team? This will permanently delete the team and all of its data. This action cannot be undone.
+                        This will permanently delete the team and all of its data. This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
+                <div class="space-y-2">
+                    <Label for="delete-confirmation">
+                        Type <span class="font-semibold">{{ team.name }}</span> to confirm
+                    </Label>
+                    <Input
+                        id="delete-confirmation"
+                        v-model="deleteConfirmation"
+                        :placeholder="team.name"
+                        autocomplete="off"
+                    />
+                </div>
                 <DialogFooter>
                     <button
                         type="button"
@@ -228,7 +240,7 @@ const deleteTeam = () => {
                     <button
                         type="button"
                         class="inline-flex h-9 items-center justify-center rounded-sm bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-                        :disabled="deleting"
+                        :disabled="deleting || deleteConfirmation !== team.name"
                         @click="deleteTeam"
                     >
                         {{ deleting ? 'Deleting...' : 'Delete' }}
