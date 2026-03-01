@@ -44,8 +44,7 @@
         }
     }
 
-    function handleCreateTeam(e: SubmitEvent) {
-        e.preventDefault();
+    function handleCreateTeam() {
         $createTeamForm.post(storeTeam().url, {
             onSuccess: () => {
                 $createTeamForm.reset();
@@ -128,7 +127,7 @@
                 Create a new team to collaborate with others.
             </DialogDescription>
         </div>
-        <form onsubmit={handleCreateTeam} class="space-y-4">
+        <div class="space-y-4">
             <div class="space-y-2">
                 <Label for="team-name">Team name</Label>
                 <Input
@@ -152,13 +151,14 @@
                     Cancel
                 </button>
                 <button
-                    type="submit"
+                    type="button"
                     class="inline-flex h-9 items-center justify-center rounded-sm bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                     disabled={$createTeamForm.processing || !$createTeamForm.name.trim()}
+                    onclick={handleCreateTeam}
                 >
                     {$createTeamForm.processing ? 'Creating...' : 'Create'}
                 </button>
             </DialogFooter>
-        </form>
+        </div>
     </DialogContent>
 </Dialog>
