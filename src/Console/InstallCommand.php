@@ -52,6 +52,11 @@ class InstallCommand extends Command
         $this->call('vendor:publish', ['--tag' => 'saas-routes']);
 
         $this->configureModels();
+        $this->patchUserModel();
+        $this->patchCreateNewUser();
+        $this->patchUserFactory();
+        $this->patchFortifyConfig();
+        $this->patchBootstrapMiddleware();
         $this->publishPlanEnum();
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
@@ -69,11 +74,7 @@ class InstallCommand extends Command
         $this->newLine();
         $this->info('Laravel SaaS installed successfully.');
         $this->newLine();
-        $this->line('Next steps:');
-        $this->line('  1. Add <comment>use HasTeams</comment> to your User model');
-        $this->line('  2. Add <comment>use CreatesPersonalTeam</comment> to your CreateNewUser action');
-        $this->line('  3. Add <comment>ShareSaasProps::class</comment> to web middleware in bootstrap/app.php');
-        $this->line('  4. Run <comment>php artisan migrate</comment>');
+        $this->line('Next step: Run <comment>php artisan migrate</comment>');
     }
 
     protected function handleUpdate(): void
@@ -86,6 +87,11 @@ class InstallCommand extends Command
         $this->publishIfMissing('saas-routes', $this->routeStubs());
         $this->forcePublish($this->managedStubs($framework));
         $this->configureModels();
+        $this->patchUserModel();
+        $this->patchCreateNewUser();
+        $this->patchUserFactory();
+        $this->patchFortifyConfig();
+        $this->patchBootstrapMiddleware();
         $this->publishPlanEnum();
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
@@ -518,6 +524,216 @@ This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode
 - Self-hosted mode: `SELF_HOSTED=true` disables billing, first user becomes root
 - Root users bypass `plan` and `subscribed` middleware
 MD;
+    }
+
+    protected function patchUserModel(): void
+    {
+        $path = app_path('Models/User.php');
+
+        if (! file_exists($path)) {
+            $this->warn('User model not found, skipping HasTeams patch.');
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'HasTeams')) {
+            $this->line('User model already uses HasTeams.');
+
+            return;
+        }
+
+        // Add import before the class declaration
+        $contents = preg_replace(
+            '/(use [^;]+;\n)((\s*\n)*class\s)/s',
+            "$1use Coollabsio\\LaravelSaas\\Concerns\\HasTeams;\n$2",
+            $contents,
+            1,
+        );
+
+        // Add trait to existing use statement (indented = inside class body)
+        if (preg_match('/^(    use\s+)(.+?)(;)\s*$/m', $contents, $m)) {
+            $contents = str_replace(
+                $m[0],
+                $m[1].'HasTeams, '.$m[2].$m[3],
+                $contents,
+            );
+        }
+
+        file_put_contents($path, $contents);
+        $this->info('Added HasTeams trait to User model.');
+    }
+
+    protected function patchCreateNewUser(): void
+    {
+        $path = app_path('Actions/Fortify/CreateNewUser.php');
+
+        if (! file_exists($path)) {
+            $this->warn('CreateNewUser action not found, skipping CreatesPersonalTeam patch.');
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'CreatesPersonalTeam')) {
+            $this->line('CreateNewUser already uses CreatesPersonalTeam.');
+
+            return;
+        }
+
+        // Add import before the class declaration
+        $contents = preg_replace(
+            '/(use [^;]+;\n)((\s*\n)*class\s)/s',
+            "$1use Coollabsio\\LaravelSaas\\Concerns\\CreatesPersonalTeam;\n$2",
+            $contents,
+            1,
+        );
+
+        // Add trait to existing use statement (indented = inside class body)
+        if (preg_match('/^(    use\s+)(.+?)(;)\s*$/m', $contents, $m)) {
+            $contents = str_replace(
+                $m[0],
+                $m[1].'CreatesPersonalTeam, '.$m[2].$m[3],
+                $contents,
+            );
+        }
+
+        // Replace "return User::create([...])" with "$user = ...; createPersonalTeam; return $user;"
+        $contents = preg_replace(
+            '/return\s+(User::create\(\[.*?\]\))\s*;/s',
+            "\$user = $1;\n\n        \$this->createPersonalTeam(\$user);\n\n        return \$user;",
+            $contents,
+        );
+
+        file_put_contents($path, $contents);
+        $this->info('Added CreatesPersonalTeam trait and call to CreateNewUser action.');
+    }
+
+    protected function patchUserFactory(): void
+    {
+        $path = database_path('factories/UserFactory.php');
+
+        if (! file_exists($path)) {
+            $this->warn('UserFactory not found, skipping factory patch.');
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'createPersonalTeam') || str_contains($contents, 'afterCreating')) {
+            $this->line('UserFactory already has afterCreating hook.');
+
+            return;
+        }
+
+        // Add configure() method before the last closing brace
+        $configureMethod = <<<'PHP'
+
+    /**
+     * Configure the model factory to create a personal team.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function ($user) {
+            $teamModel = \Coollabsio\LaravelSaas\Support\Billing::teamModel();
+            $isRoot = config('saas.self_hosted') && $teamModel::count() === 0;
+
+            $team = $teamModel::forceCreate([
+                'name' => $user->name . "'s Team",
+                'personal_team' => true,
+                'owner_id' => $user->id,
+                'is_root' => $isRoot,
+            ]);
+
+            $team->users()->attach($user, ['role' => 'owner']);
+            $user->forceFill(['current_team_id' => $team->id])->save();
+        });
+    }
+PHP;
+
+        $contents = preg_replace('/\n}\s*$/', $configureMethod."\n}\n", $contents);
+
+        file_put_contents($path, $contents);
+        $this->info('Added afterCreating hook to UserFactory for personal team creation.');
+    }
+
+    protected function patchFortifyConfig(): void
+    {
+        $path = config_path('fortify.php');
+
+        if (! file_exists($path)) {
+            $this->warn('config/fortify.php not found, skipping home path patch.');
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        $updated = preg_replace(
+            "/'home'\s*=>\s*'[^']*'/",
+            "'home' => '/'",
+            $contents,
+        );
+
+        if ($updated === $contents) {
+            $this->line('Fortify home config already set or not found.');
+
+            return;
+        }
+
+        file_put_contents($path, $updated);
+        $this->info("Updated Fortify home config to '/'.");
+    }
+
+    protected function patchBootstrapMiddleware(): void
+    {
+        $path = base_path('bootstrap/app.php');
+
+        if (! file_exists($path)) {
+            $this->warn('bootstrap/app.php not found, skipping middleware patch.');
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'ShareSaasProps')) {
+            $this->line('bootstrap/app.php already contains ShareSaasProps.');
+
+            return;
+        }
+
+        // Add import at top of file after existing use statements
+        if (preg_match_all('/^use [^;]+;\n/m', $contents, $matches, PREG_OFFSET_CAPTURE)) {
+            $lastUse = end($matches[0]);
+            $insertPos = $lastUse[1] + strlen($lastUse[0]);
+            $contents = substr($contents, 0, $insertPos)
+                ."use Coollabsio\\LaravelSaas\\Http\\Middleware\\ShareSaasProps;\n"
+                .substr($contents, $insertPos);
+        }
+
+        // Case 1: web(append: [...]) already exists — add to the array
+        if (preg_match('/\$middleware->web\(\s*append:\s*\[/', $contents)) {
+            $contents = preg_replace(
+                '/(\$middleware->web\(\s*append:\s*\[)\n/',
+                "$1\n            ShareSaasProps::class,\n",
+                $contents,
+            );
+        }
+        // Case 2: withMiddleware callback exists but no web(append:) — add the call
+        elseif (preg_match('/->withMiddleware\(/', $contents)) {
+            $contents = preg_replace(
+                '/(->withMiddleware\(\s*function\s*\(\s*Middleware\s+\$middleware\s*\)\s*(?::\s*void\s*)?\{)\n/',
+                "$1\n        \$middleware->web(append: [\n            ShareSaasProps::class,\n        ]);\n\n",
+                $contents,
+            );
+        }
+
+        file_put_contents($path, $contents);
+        $this->info('Added ShareSaasProps middleware to bootstrap/app.php.');
     }
 
     protected function patchSidebar(string $framework): void
