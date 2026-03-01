@@ -31,7 +31,7 @@
     const currentTeam = $derived($page.props.currentTeam as Team | null);
     const teams = $derived($page.props.teams as Team[] | null);
 
-    const { isMobile, state } = useSidebar();
+    const { isMobile, state: sidebarState } = useSidebar();
 
     let showCreateDialog = $state(false);
     const createTeamForm = useForm({ name: '' });
@@ -76,7 +76,7 @@
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                side={isMobile ? 'bottom' : state === 'collapsed' ? 'right' : 'bottom'}
+                side={isMobile ? 'bottom' : sidebarState === 'collapsed' ? 'right' : 'bottom'}
                 align="start"
                 sideOffset={4}
             >
