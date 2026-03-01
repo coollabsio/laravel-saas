@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { useForm } from '@inertiajs/svelte';
+    import { router } from '@inertiajs/svelte';
     import Heading from '@/components/Heading.svelte';
     import { Label } from '@/components/ui/label';
     import NativeCheckbox from '@/components/NativeCheckbox.svelte';
@@ -22,12 +22,17 @@
         },
     ];
 
-    const form = useForm({
-        registration_enabled: settings.registration_enabled,
-    });
+    let registrationEnabled = $state(settings.registration_enabled);
+    let recentlySuccessful = $state(false);
 
     function submit() {
-        $form.patch('/settings/instance');
+        router.patch('/settings/instance', { registration_enabled: registrationEnabled }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                recentlySuccessful = true;
+                setTimeout(() => recentlySuccessful = false, 2000);
+            },
+        });
     }
 </script>
 
@@ -42,10 +47,10 @@
 
             <div class="flex items-center gap-3">
                 <Label for="registration_enabled">Registration enabled</Label>
-                <NativeCheckbox id="registration_enabled" bind:checked={$form.registration_enabled} onchange={submit} />
+                <NativeCheckbox id="registration_enabled" bind:checked={registrationEnabled} onchange={submit} />
             </div>
 
-            {#if $form.recentlySuccessful}
+            {#if recentlySuccessful}
                 <p class="text-sm text-neutral-600">Saved.</p>
             {/if}
         </div>

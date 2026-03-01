@@ -96,10 +96,14 @@
                 </Button>
             </div>
 
-            {#if canRegister}
+            {#if canRegister && $page.props.instance?.registrationEnabled}
                 <div class="text-center text-sm text-muted-foreground">
                     Don't have an account?
                     <TextLink href={register()}>Sign up</TextLink>
+                </div>
+            {:else if canRegister && !$page.props.instance?.registrationEnabled}
+                <div class="text-center text-sm text-muted-foreground">
+                    Registration is disabled. Contact your system administrator.
                 </div>
             {/if}
         {/snippet}

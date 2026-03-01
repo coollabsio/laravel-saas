@@ -353,6 +353,40 @@ Package auto-registers team and billing routes (toggleable via `config('saas.rou
 - Managed stubs (listed in `managedStubs()`) are force-overwritten on `saas:install --update`. Users should not edit them directly.
 - When adding a new managed stub, add it to `managedStubs()` in `src/Console/InstallCommand.php` and update `buildAgentSection()`.
 
+### Svelte Stub Form Patterns
+
+Inertia's `useForm()` store does **not** work reliably with `bind:value`/`bind:checked` in Svelte 5 — store property bindings don't propagate changes back to form data. Follow these patterns instead:
+
+**For forms with a submit button** — use the `<Form>` component from `@inertiajs/svelte` with Wayfinder's `.form()` binding:
+```svelte
+<Form {...Controller.action.form({ id })} class="space-y-6">
+    {#snippet children({ errors, processing, recentlySuccessful })}
+        <Input name="fieldName" value={initialValue} />
+        <InputError message={errors.fieldName} />
+        <Button type="submit" disabled={processing}>Save</Button>
+    {/snippet}
+</Form>
+```
+Key rules:
+- Use `name` attributes on inputs (the `<Form>` component collects values automatically)
+- Use `value={...}` for initial values, **not** `bind:value`
+- Buttons inside snippets need explicit `type="submit"`
+- Access `errors`, `processing`, `recentlySuccessful` from the snippet, not from a store
+
+**For auto-submit controls (checkboxes, toggles)** — use local `$state` with `router.patch()`:
+```svelte
+let myValue = $state(props.initialValue);
+function submit() {
+    router.patch(url, { my_field: myValue }, {
+        preserveScroll: true,
+        onSuccess: () => { /* ... */ },
+    });
+}
+// In template: bind:checked={myValue} onchange={submit}
+```
+
+**Never use** `useForm()` with `bind:value={$form.field}` or `bind:checked={$form.field}` in Svelte stubs.
+
 ## Install Command Rules
 
 When adding new publishable assets (Vue stubs, route files, config keys), always update `src/Console/InstallCommand.php`:

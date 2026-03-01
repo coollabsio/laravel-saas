@@ -106,10 +106,17 @@ const defaultPassword = page.props.dev?.password ?? '';
 
             <div
                 class="text-center text-sm text-muted-foreground"
-                v-if="canRegister"
+                v-if="canRegister && page.props.instance?.registrationEnabled"
             >
                 Don't have an account?
                 <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+            </div>
+
+            <div
+                class="text-center text-sm text-muted-foreground"
+                v-else-if="canRegister && !page.props.instance?.registrationEnabled"
+            >
+                Registration is disabled. Contact your system administrator.
             </div>
         </Form>
     </AuthBase>

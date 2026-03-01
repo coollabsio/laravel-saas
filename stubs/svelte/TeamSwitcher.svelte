@@ -25,7 +25,7 @@
         SidebarMenuItem,
         useSidebar,
     } from '@/components/ui/sidebar';
-    import { switchTeam, edit as editTeam, store as storeTeam } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
+    import TeamController, { switchTeam, edit as editTeam } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
     import type { Team } from '@/types';
 
     const currentTeam = $derived($page.props.currentTeam as Team | null);
@@ -119,7 +119,7 @@
             </DialogDescription>
         </div>
         <Form
-            {...storeTeam().form()}
+            {...TeamController.store.form()}
             class="space-y-4"
             onSuccess={() => { showCreateDialog = false; }}
         >
