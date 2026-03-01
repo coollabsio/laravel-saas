@@ -7,3 +7,4 @@
 - Never destructure a variable named `state` in Svelte 5 — `$state` rune conflicts with Svelte's `$` store auto-subscription prefix. Use `const { state: sidebarState } = useSidebar()` instead.
 - shadcn-svelte `asChild` pattern requires explicit snippet syntax: `{#snippet children(props)}<Component {...props}>...</Component>{/snippet}`. Without it, trigger props (onclick, aria-expanded) are silently lost.
 - Inertia's `useForm` store doesn't reliably support `bind:value={$form.field}` in Svelte 5 — the store may not update on input. Use plain `$state` variables with `router.post()` instead for forms in dialogs.
+- shadcn-svelte `Input` doesn't support `bind:value` with Svelte 5 `$state`. Use `value={myVar}` + `oninput={(e) => myVar = e.currentTarget.value}` instead.

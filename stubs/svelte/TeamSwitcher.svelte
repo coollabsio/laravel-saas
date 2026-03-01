@@ -142,7 +142,8 @@
                 <Label for="team-name">Team name</Label>
                 <Input
                     id="team-name"
-                    bind:value={teamName}
+                    value={teamName}
+                    oninput={(e) => teamName = e.currentTarget.value}
                     placeholder="My Team"
                     autofocus
                 />
