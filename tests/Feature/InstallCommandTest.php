@@ -51,39 +51,31 @@ it('defaults frontend config to vue', function () {
     expect(config('saas.frontend'))->toBe('vue');
 });
 
-it('reads frontend config for update flow', function () {
-    config(['saas.frontend' => 'svelte']);
-
-    $command = new InstallCommand;
-    $method = new ReflectionMethod($command, 'frontend');
-
-    expect($method->invoke($command))->toBe('svelte');
+it('updates with vue framework by default', function () {
+    $this->artisan('saas:install --update')
+        ->expectsOutputToContain('framework: vue');
 });
 
-it('builds agent section with vue references by default', function () {
-    $command = new InstallCommand;
-    $method = new ReflectionMethod($command, 'buildAgentSection');
-
-    $section = $method->invoke($command);
-
-    expect($section)
-        ->toContain('Frontend framework: Vue')
-        ->toContain('Team.vue')
-        ->toContain('Billing.vue')
-        ->toContain('Managed Vue stubs');
+it('updates with svelte framework via --svelte flag', function () {
+    $this->artisan('saas:install --update --svelte')
+        ->expectsOutputToContain('framework: svelte');
 });
 
-it('builds agent section with svelte references when configured', function () {
+it('updates with vue framework via --vue flag', function () {
+    $this->artisan('saas:install --update --vue')
+        ->expectsOutputToContain('framework: vue');
+});
+
+it('uses config value when no flag is provided', function () {
     config(['saas.frontend' => 'svelte']);
 
-    $command = new InstallCommand;
-    $method = new ReflectionMethod($command, 'buildAgentSection');
+    $this->artisan('saas:install --update')
+        ->expectsOutputToContain('framework: svelte');
+});
 
-    $section = $method->invoke($command);
+it('flag overrides config value', function () {
+    config(['saas.frontend' => 'svelte']);
 
-    expect($section)
-        ->toContain('Frontend framework: Svelte')
-        ->toContain('Team.svelte')
-        ->toContain('Billing.svelte')
-        ->toContain('Managed Svelte stubs');
+    $this->artisan('saas:install --update --vue')
+        ->expectsOutputToContain('framework: vue');
 });

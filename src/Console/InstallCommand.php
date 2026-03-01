@@ -8,7 +8,10 @@ use function Laravel\Prompts\select;
 
 class InstallCommand extends Command
 {
-    protected $signature = 'saas:install {--update : Update existing installation with new/changed stubs}';
+    protected $signature = 'saas:install
+        {--update : Update existing installation with new/changed stubs}
+        {--vue : Use Vue 3 as the frontend framework}
+        {--svelte : Use Svelte 5 as the frontend framework}';
 
     protected $description = 'Install the Laravel SaaS package';
 
@@ -22,14 +25,16 @@ class InstallCommand extends Command
 
         $this->info('Installing Laravel SaaS...');
 
-        $framework = select(
-            label: 'Which frontend framework are you using?',
-            options: [
-                'vue' => 'Vue 3 (Inertia + shadcn-vue)',
-                'svelte' => 'Svelte 5 (Inertia + shadcn-svelte)',
-            ],
-            default: 'vue',
-        );
+        $framework = $this->option('vue') || $this->option('svelte')
+            ? $this->frontend()
+            : select(
+                label: 'Which frontend framework are you using?',
+                options: [
+                    'vue' => 'Vue 3 (Inertia + shadcn-vue)',
+                    'svelte' => 'Svelte 5 (Inertia + shadcn-svelte)',
+                ],
+                default: 'vue',
+            );
 
         $this->call('vendor:publish', ['--tag' => 'saas-config']);
         $this->setFrontendConfig($framework);
@@ -80,6 +85,14 @@ class InstallCommand extends Command
 
     protected function frontend(): string
     {
+        if ($this->option('svelte')) {
+            return 'svelte';
+        }
+
+        if ($this->option('vue')) {
+            return 'vue';
+        }
+
         return config('saas.frontend', 'vue');
     }
 
