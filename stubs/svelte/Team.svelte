@@ -257,7 +257,7 @@
                     autocomplete="off"
                 />
             </div>
-            <DialogFooter>
+            <DialogFooter class="pt-4">
                 <button
                     type="button"
                     class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
