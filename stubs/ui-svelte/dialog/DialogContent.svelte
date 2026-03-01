@@ -9,10 +9,17 @@
     const { open, setOpen } = getContext<DialogContext>(DIALOG_CONTEXT);
 
     const close = () => setOpen(false);
+
+    const handleKeydown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            close();
+        }
+    };
 </script>
 
 {#if open()}
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center" onkeydown={handleKeydown}>
         <button
             type="button"
             class="fixed inset-0 bg-black/50"
@@ -26,6 +33,7 @@
             )}
             role="dialog"
             aria-modal="true"
+            tabindex="-1"
         >
             {@render children?.()}
         </div>
