@@ -401,20 +401,20 @@ class InstallCommand extends Command
         $framework = $this->frontend();
         $base = dirname(__DIR__, 2).'/stubs';
 
-        // Publish Coolify-themed shadcn UI components (Vue only — Svelte apps use their own shadcn-svelte components)
-        $uiSource = $base.'/ui';
+        // Publish Coolify-themed shadcn UI components
+        $uiSource = $framework === 'svelte'
+            ? $base.'/ui-svelte'
+            : $base.'/ui';
 
-        if ($framework !== 'svelte' && is_dir($uiSource)) {
+        if (is_dir($uiSource)) {
             $this->copyDirectory($uiSource, resource_path('js/components/ui'));
             $this->info('Published Coolify-themed UI components.');
         }
 
-        // Publish Coolify-themed non-UI components (Heading, AppHeader, etc.) — Vue only
-        if ($framework === 'svelte') {
-            return;
-        }
-
-        $designSource = $base.'/design';
+        // Publish Coolify-themed non-UI components (Heading, AppSidebarHeader, etc.)
+        $designSource = $framework === 'svelte'
+            ? $base.'/design-svelte'
+            : $base.'/design';
 
         if (! is_dir($designSource)) {
             return;
