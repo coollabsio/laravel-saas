@@ -370,6 +370,7 @@ class InstallCommand extends Command
         $this->info("Published design system to {$target}");
 
         $this->patchAppCss();
+        $this->publishDesignComponents();
     }
 
     protected function patchAppCss(): void
@@ -385,6 +386,44 @@ class InstallCommand extends Command
         $stub = dirname(__DIR__, 2).'/stubs/design-system.css';
         copy($stub, $cssPath);
         $this->info('Replaced resources/css/app.css with Coolify design system.');
+    }
+
+    protected function publishDesignComponents(): void
+    {
+        $source = dirname(__DIR__, 2).'/stubs/ui';
+
+        if (! is_dir($source)) {
+            $this->warn('Design system UI components not found.');
+
+            return;
+        }
+
+        $target = resource_path('js/components/ui');
+
+        $this->copyDirectory($source, $target);
+        $this->info('Published Coolify-themed UI components to resources/js/components/ui/.');
+    }
+
+    protected function copyDirectory(string $source, string $target): void
+    {
+        if (! is_dir($target)) {
+            mkdir($target, 0755, true);
+        }
+
+        foreach (scandir($source) as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $sourcePath = $source.'/'.$item;
+            $targetPath = $target.'/'.$item;
+
+            if (is_dir($sourcePath)) {
+                $this->copyDirectory($sourcePath, $targetPath);
+            } else {
+                copy($sourcePath, $targetPath);
+            }
+        }
     }
 
     protected function injectAgentSections(): void
