@@ -78,7 +78,7 @@ const deleteTeam = () => {
                     team: team.id,
                 })
                     " class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
-                    <div class="grid gap-2">
+                    <div class="grid gap-3">
                         <Label for="name">Name</Label>
                         <Input id="name" name="name" :default-value="team.name" required :disabled="!isOwner" />
                         <InputError :message="errors.name" />
@@ -159,13 +159,13 @@ const deleteTeam = () => {
                     team: team.id,
                 })
                     " class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
-                    <div class="grid gap-2">
+                    <div class="grid gap-3">
                         <Label for="email">Email address</Label>
                         <Input id="email" type="email" name="email" placeholder="email@example.com" required />
                         <InputError :message="errors.email" />
                     </div>
 
-                    <div class="grid gap-2">
+                    <div class="grid gap-3">
                         <Label for="role">Role</Label>
                         <select id="role" name="role"
                             class="appearance-none block w-full min-w-0 rounded-sm border-2 border-input py-1.5 px-2 text-sm text-black bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow">

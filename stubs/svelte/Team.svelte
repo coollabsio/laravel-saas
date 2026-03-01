@@ -98,7 +98,7 @@
             <Heading variant="small" title="Team name" description="Update your team's name" />
 
             <form onsubmit={handleUpdateTeam} class="space-y-6">
-                <div class="grid gap-2">
+                <div class="grid gap-3">
                     <Label for="name">Name</Label>
                     <Input id="name" bind:value={$updateTeamForm.name} required disabled={!isOwner} />
                     <InputError message={$updateTeamForm.errors.name} />
@@ -181,13 +181,13 @@
                 <Heading variant="small" title="Invite team member" description="Invite a new member to your team by email" />
 
                 <form onsubmit={handleInvite} class="space-y-6">
-                    <div class="grid gap-2">
+                    <div class="grid gap-3">
                         <Label for="email">Email address</Label>
                         <Input id="email" type="email" bind:value={$inviteForm.email} placeholder="email@example.com" required />
                         <InputError message={$inviteForm.errors.email} />
                     </div>
 
-                    <div class="grid gap-2">
+                    <div class="grid gap-3">
                         <Label for="role">Role</Label>
                         <select
                             id="role"
