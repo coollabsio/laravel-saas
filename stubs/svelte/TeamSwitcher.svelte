@@ -59,20 +59,23 @@
     <SidebarMenuItem>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                    size="lg"
-                    class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                    <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                        <AppLogoIcon class="size-5 fill-current" />
-                    </div>
-                    <div class="grid flex-1 text-left text-sm leading-tight">
-                        <span class="truncate font-semibold text-black dark:text-white">
-                            {currentTeam?.name}
-                        </span>
-                    </div>
-                    <ChevronsUpDown class="ml-auto size-4" />
-                </SidebarMenuButton>
+                {#snippet children(triggerProps)}
+                    <SidebarMenuButton
+                        size="lg"
+                        class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        {...triggerProps}
+                    >
+                        <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                            <AppLogoIcon class="size-5 fill-current" />
+                        </div>
+                        <div class="grid flex-1 text-left text-sm leading-tight">
+                            <span class="truncate font-semibold text-black dark:text-white">
+                                {currentTeam?.name}
+                            </span>
+                        </div>
+                        <ChevronsUpDown class="ml-auto size-4" />
+                    </SidebarMenuButton>
+                {/snippet}
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
