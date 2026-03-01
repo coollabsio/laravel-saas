@@ -34,7 +34,7 @@
                     {...TeamInvitationController.process.form({ token: invitation.token })}
                 >
                     {#snippet children({ processing })}
-                        <Button class="w-full" disabled={processing}>
+                        <Button type="submit" class="w-full" disabled={processing}>
                             Accept Invitation
                         </Button>
                     {/snippet}

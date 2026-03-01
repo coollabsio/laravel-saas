@@ -104,7 +104,7 @@
 
                     {#if isOwner}
                         <div class="flex items-center gap-4">
-                            <Button disabled={processing}>Save</Button>
+                            <Button type="submit" disabled={processing}>Save</Button>
 
                             {#if recentlySuccessful}
                                 <p class="text-sm text-neutral-600">Saved.</p>
@@ -204,7 +204,7 @@
                         </div>
 
                         <div class="flex items-center gap-4">
-                            <Button disabled={processing}>Send Invitation</Button>
+                            <Button type="submit" disabled={processing}>Send Invitation</Button>
 
                             {#if recentlySuccessful}
                                 <p class="text-sm text-neutral-600">Invitation sent.</p>
