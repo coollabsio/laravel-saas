@@ -137,7 +137,7 @@
                 Create a new team to collaborate with others.
             </DialogDescription>
         </div>
-        <div class="space-y-4">
+        <form onsubmit={(e) => { e.preventDefault(); handleCreateTeam(); }} class="space-y-4">
             <div class="space-y-2">
                 <Label for="team-name">Team name</Label>
                 <Input
@@ -162,14 +162,13 @@
                     Cancel
                 </button>
                 <button
-                    type="button"
+                    type="submit"
                     class="inline-flex h-9 items-center justify-center rounded-sm bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                     disabled={creating || !teamName.trim()}
-                    onclick={handleCreateTeam}
                 >
                     {creating ? 'Creating...' : 'Create'}
                 </button>
             </DialogFooter>
-        </div>
+        </form>
     </DialogContent>
 </Dialog>

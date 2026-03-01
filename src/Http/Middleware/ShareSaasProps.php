@@ -32,6 +32,9 @@ class ShareSaasProps
                 'isRootUser' => $request->user()?->isRootUser() ?? false,
                 'registrationEnabled' => Billing::instanceSettingsModel()::registrationEnabled(),
             ],
+            'dev' => fn () => app()->isLocal()
+                ? ['email' => 'test@example.com', 'password' => 'password']
+                : null,
         ]);
 
         return $next($request);

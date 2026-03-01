@@ -253,11 +253,13 @@
                     id="delete-confirmation"
                     value={deleteConfirmation}
                     oninput={(e) => deleteConfirmation = e.currentTarget.value}
+                    onkeydown={(e) => { if (e.key === 'Enter' && deleteConfirmation === team.name) deleteTeam(); }}
                     placeholder={team.name}
                     autocomplete="off"
+                    autofocus
                 />
             </div>
-            <DialogFooter class="pt-4">
+            <DialogFooter>
                 <button
                     type="button"
                     class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"

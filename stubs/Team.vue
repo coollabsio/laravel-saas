@@ -227,24 +227,25 @@ const deleteTeam = () => {
                         v-model="deleteConfirmation"
                         :placeholder="team.name"
                         autocomplete="off"
+                        autofocus
+                        @keydown.enter="deleteConfirmation === team.name && deleteTeam()"
                     />
                 </div>
-                <DialogFooter class="pt-4">
-                    <button
-                        type="button"
-                        class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                        @click="showDeleteDialog = false"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        class="inline-flex h-9 items-center justify-center rounded-sm bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-                        :disabled="deleting || deleteConfirmation !== team.name"
-                        @click="deleteTeam"
-                    >
-                        {{ deleting ? 'Deleting...' : 'Delete' }}
-                    </button>
+                <DialogFooter>
+                        <button
+                            type="button"
+                            class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                            @click="showDeleteDialog = false"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            class="inline-flex h-9 items-center justify-center rounded-sm bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                            :disabled="deleting || deleteConfirmation !== team.name"
+                        >
+                            {{ deleting ? 'Deleting...' : 'Delete' }}
+                        </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

@@ -61,6 +61,7 @@ class InstallCommand extends Command
         $this->publishPlanEnum();
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
+        $this->patchLoginPage($framework);
         $this->publishAiDocs();
 
         if ($this->option('design')) {
@@ -97,6 +98,7 @@ class InstallCommand extends Command
         $this->publishPlanEnum();
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
+        $this->patchLoginPage($framework);
         $this->publishAiDocs();
 
         if ($this->option('design')) {
@@ -527,7 +529,7 @@ This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode
   - `resources/js/components/NativeCheckbox.{$ext}`
 - User model must use `Coollabsio\LaravelSaas\Concerns\HasTeams` trait
 - Registration action must use `Coollabsio\LaravelSaas\Concerns\CreatesPersonalTeam` trait
-- `ShareSaasProps` middleware shares `currentTeam`, `teams`, `billing`, and `instance` Inertia props
+- `ShareSaasProps` middleware shares `currentTeam`, `teams`, `billing`, `instance`, and `dev` (local env only) Inertia props
 - Self-hosted mode: `SELF_HOSTED=true` disables billing, first user becomes root
 - Root users bypass `plan` and `subscribed` middleware
 MD;
@@ -851,6 +853,96 @@ PHP;
 
         file_put_contents($path, $contents);
         $this->info("Patched settings/Layout.{$ext} with Team, Billing, and Instance nav items.");
+    }
+
+    protected function patchLoginPage(string $framework): void
+    {
+        $ext = $framework === 'svelte' ? 'svelte' : 'vue';
+        $path = resource_path("js/pages/auth/Login.{$ext}");
+
+        if (! file_exists($path)) {
+            $this->warn("Login.{$ext} not found, skipping login prefill patch.");
+
+            return;
+        }
+
+        $contents = file_get_contents($path);
+
+        if (str_contains($contents, 'dev?.email')) {
+            $this->line("Login.{$ext} already has dev credentials prefill.");
+
+            return;
+        }
+
+        if ($framework === 'svelte') {
+            $contents = $this->patchSvelteLoginPage($contents);
+        } else {
+            $contents = $this->patchVueLoginPage($contents);
+        }
+
+        file_put_contents($path, $contents);
+        $this->info("Patched Login.{$ext} with dev credentials prefill.");
+    }
+
+    protected function patchVueLoginPage(string $contents): string
+    {
+        // Inject usePage into the @inertiajs/vue3 import if not present
+        if (! str_contains($contents, 'usePage')) {
+            $contents = preg_replace(
+                "/(import\s*\{[^}]*)(}\s*from\s*'@inertiajs\/vue3')/",
+                '$1, usePage $2',
+                $contents,
+            );
+        }
+
+        // Insert `const page = usePage()` before `const form = useForm`
+        if (! str_contains($contents, 'const page = usePage()')) {
+            $contents = str_replace(
+                'const form = useForm(',
+                "const page = usePage()\nconst form = useForm(",
+                $contents,
+            );
+        }
+
+        // Replace email and password initial values
+        $contents = preg_replace(
+            "/(email:\s*)''/",
+            "$1page.props.dev?.email ?? ''",
+            $contents,
+        );
+        $contents = preg_replace(
+            "/(password:\s*)''/",
+            "$1page.props.dev?.password ?? ''",
+            $contents,
+        );
+
+        return $contents;
+    }
+
+    protected function patchSvelteLoginPage(string $contents): string
+    {
+        // Inject page import if not present
+        if (! str_contains($contents, 'page')) {
+            $contents = preg_replace(
+                "/(import\s*\{[^}]*)(}\s*from\s*'@inertiajs\/svelte')/",
+                '$1, page $2',
+                $contents,
+            );
+        }
+
+        // Replace email and password initial values
+        $contents = preg_replace(
+            "/(email:\s*)''/",
+            '$1$page.props.dev?.email ?? \'\'',
+            $contents,
+        );
+        $contents = preg_replace(
+            "/(password:\s*)''/",
+            '$1$page.props.dev?.password ?? \'\'',
+            $contents,
+        );
+
+        return $contents;
     }
 
     protected function patchSvelteSettingsLayout(string $contents): string
