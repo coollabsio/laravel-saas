@@ -11,12 +11,22 @@ class InstallCommand extends Command
     protected $signature = 'saas:install
         {--update : Update existing installation with new/changed stubs}
         {--vue : Use Vue 3 as the frontend framework}
-        {--svelte : Use Svelte 5 as the frontend framework}';
+        {--svelte : Use Svelte 5 as the frontend framework}
+        {--design : Publish the design system for AI agents}
+        {--only-design-system : Only publish/update the design system file}';
 
     protected $description = 'Install the Laravel SaaS package';
 
     public function handle(): void
     {
+        if ($this->option('only-design-system')) {
+            $this->publishDesignSystem();
+            $this->newLine();
+            $this->info('Design system published successfully.');
+
+            return;
+        }
+
         if ($this->option('update')) {
             $this->handleUpdate();
 
@@ -46,6 +56,11 @@ class InstallCommand extends Command
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
         $this->publishAiDocs();
+
+        if ($this->option('design')) {
+            $this->publishDesignSystem();
+        }
+
         $this->injectAgentSections();
         $this->registerTestSuite();
         $this->registerPestDirectory();
@@ -75,6 +90,11 @@ class InstallCommand extends Command
         $this->patchSidebar($framework);
         $this->patchSettingsLayout($framework);
         $this->publishAiDocs();
+
+        if ($this->option('design')) {
+            $this->publishDesignSystem();
+        }
+
         $this->injectAgentSections();
 
         $this->registerTestSuite();
@@ -319,10 +339,35 @@ class InstallCommand extends Command
         }
 
         foreach (glob($source.'/*.md') as $file) {
+            if (basename($file) === 'DESIGN_SYSTEM.md') {
+                continue;
+            }
+
             $dest = $target.'/'.basename($file);
             copy($file, $dest);
             $this->line("Updated: {$dest}");
         }
+    }
+
+    protected function publishDesignSystem(): void
+    {
+        $source = dirname(__DIR__, 2).'/.ai/DESIGN_SYSTEM.md';
+
+        if (! file_exists($source)) {
+            $this->warn('Design system source file not found.');
+
+            return;
+        }
+
+        $target = base_path('.ai/laravel-saas/DESIGN_SYSTEM.md');
+        $dir = dirname($target);
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        copy($source, $target);
+        $this->info("Published design system to {$target}");
     }
 
     protected function injectAgentSections(): void
