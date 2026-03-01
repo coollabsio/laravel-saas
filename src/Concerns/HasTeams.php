@@ -29,7 +29,7 @@ trait HasTeams
 
     public function switchTeam($team): void
     {
-        $this->update(['current_team_id' => $team->id]);
+        $this->forceFill(['current_team_id' => $team->id])->save();
         $this->setRelation('currentTeam', $team);
     }
 

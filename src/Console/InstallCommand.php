@@ -368,6 +368,182 @@ class InstallCommand extends Command
 
         copy($source, $target);
         $this->info("Published design system to {$target}");
+
+        $this->patchAppCss();
+    }
+
+    protected function patchAppCss(): void
+    {
+        $cssPath = resource_path('css/app.css');
+
+        if (! file_exists($cssPath)) {
+            $this->warn('resources/css/app.css not found, skipping CSS patch.');
+
+            return;
+        }
+
+        $stub = file_get_contents(dirname(__DIR__, 2).'/stubs/design-system.css');
+        $contents = file_get_contents($cssPath);
+
+        $contents = $this->injectThemeTokens($contents, $stub);
+        $contents = $this->replaceRootAndDark($contents, $stub);
+        $contents = $this->appendComponentStyles($contents, $stub);
+
+        file_put_contents($cssPath, $contents);
+        $this->info('Patched resources/css/app.css with Coolify design system.');
+    }
+
+    protected function injectThemeTokens(string $contents, string $stub): string
+    {
+        $startTag = '/* <coolify-design-system:theme-tokens>';
+        $endTag = '/* </coolify-design-system:theme-tokens> */';
+
+        $tokens = $this->extractBetween($stub, $startTag, $endTag);
+
+        if ($tokens === null) {
+            return $contents;
+        }
+
+        $block = $startTag."\n".$tokens."\n".$endTag;
+
+        // Replace existing block or inject before closing } of @theme inline
+        if (str_contains($contents, $startTag)) {
+            return preg_replace(
+                '/'.preg_quote($startTag, '/').'.*?'.preg_quote($endTag, '/').'/s',
+                $block,
+                $contents,
+            );
+        }
+
+        // Inject before the closing } of @theme inline
+        $pos = $this->findThemeInlineClose($contents);
+
+        if ($pos === false) {
+            $this->warn('Could not find @theme inline closing brace, skipping token injection.');
+
+            return $contents;
+        }
+
+        return substr($contents, 0, $pos)."\n".$block."\n".substr($contents, $pos);
+    }
+
+    protected function replaceRootAndDark(string $contents, string $stub): string
+    {
+        $startTag = '/* <coolify-design-system:root>';
+        $endTag = '/* </coolify-design-system:root> */';
+
+        $rootDark = $this->extractBetween($stub, $startTag, $endTag);
+
+        if ($rootDark === null) {
+            return $contents;
+        }
+
+        $block = $startTag."\n".$rootDark."\n".$endTag;
+
+        // Replace existing managed block
+        if (str_contains($contents, $startTag)) {
+            return preg_replace(
+                '/'.preg_quote($startTag, '/').'.*?'.preg_quote($endTag, '/').'/s',
+                $block,
+                $contents,
+            );
+        }
+
+        // Replace existing :root { ... } and .dark { ... } blocks
+        $contents = preg_replace('/^:root\s*\{[^}]*\}\s*/ms', '', $contents);
+        $contents = preg_replace('/^\.dark\s*\{[^}]*\}\s*/ms', '', $contents);
+
+        // Find the @layer base block that contains border-border and insert before it
+        if (preg_match('/@layer base\s*\{\s*\*.*?border-border/s', $contents, $matches, PREG_OFFSET_CAPTURE)) {
+            $pos = $matches[0][1];
+
+            return substr($contents, 0, $pos)."\n".$block."\n\n".substr($contents, $pos);
+        }
+
+        // Fallback: append before end
+        return $contents."\n".$block."\n";
+    }
+
+    protected function appendComponentStyles(string $contents, string $stub): string
+    {
+        $startTag = '/* <coolify-design-system:components>';
+        $endTag = '/* </coolify-design-system:components> */';
+
+        $components = $this->extractBetween($stub, $startTag, $endTag);
+
+        if ($components === null) {
+            return $contents;
+        }
+
+        $block = $startTag."\n".$components."\n".$endTag;
+
+        // Replace existing block or append
+        if (str_contains($contents, $startTag)) {
+            return preg_replace(
+                '/'.preg_quote($startTag, '/').'.*?'.preg_quote($endTag, '/').'/s',
+                $block,
+                $contents,
+            );
+        }
+
+        return rtrim($contents)."\n\n".$block."\n";
+    }
+
+    protected function extractBetween(string $haystack, string $startTag, string $endTag): ?string
+    {
+        $startPos = strpos($haystack, $startTag);
+
+        if ($startPos === false) {
+            return null;
+        }
+
+        $contentStart = strpos($haystack, "\n", $startPos);
+
+        if ($contentStart === false) {
+            return null;
+        }
+
+        $endPos = strpos($haystack, $endTag, $contentStart);
+
+        if ($endPos === false) {
+            return null;
+        }
+
+        return rtrim(substr($haystack, $contentStart + 1, $endPos - $contentStart - 1));
+    }
+
+    /**
+     * Find the position of the closing } of the @theme inline { ... } block.
+     */
+    protected function findThemeInlineClose(string $contents): int|false
+    {
+        $themePos = strpos($contents, '@theme inline');
+
+        if ($themePos === false) {
+            return false;
+        }
+
+        $braceStart = strpos($contents, '{', $themePos);
+
+        if ($braceStart === false) {
+            return false;
+        }
+
+        $depth = 1;
+        $len = strlen($contents);
+
+        for ($i = $braceStart + 1; $i < $len; $i++) {
+            if ($contents[$i] === '{') {
+                $depth++;
+            } elseif ($contents[$i] === '}') {
+                $depth--;
+                if ($depth === 0) {
+                    return $i;
+                }
+            }
+        }
+
+        return false;
     }
 
     protected function injectAgentSections(): void
