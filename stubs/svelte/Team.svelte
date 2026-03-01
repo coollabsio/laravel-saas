@@ -4,6 +4,13 @@
     import Heading from '@/components/Heading.svelte';
     import InputError from '@/components/InputError.svelte';
     import { Button } from '@/components/ui/button';
+    import {
+        Dialog,
+        DialogContent,
+        DialogDescription,
+        DialogFooter,
+        DialogTitle,
+    } from '@/components/ui/dialog';
     import { Input } from '@/components/ui/input';
     import { Label } from '@/components/ui/label';
     import { Badge } from '@/components/ui/badge';
@@ -33,6 +40,9 @@
 
     const updateTeamForm = useForm({ name: team.name });
     const inviteForm = useForm({ email: '', role: 'member' });
+
+    let showDeleteDialog = $state(false);
+    let deleting = $state(false);
 
     function handleUpdateTeam(e: SubmitEvent) {
         e.preventDefault();
@@ -81,9 +91,12 @@
     }
 
     function deleteTeam() {
-        if (confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
-            router.delete(TeamController.destroy.url(team.id));
-        }
+        deleting = true;
+        router.delete(TeamController.destroy.url(team.id), {
+            onFinish: () => {
+                deleting = false;
+            },
+        });
     }
 </script>
 
@@ -216,10 +229,38 @@
             <div class="flex flex-col space-y-6">
                 <Heading variant="small" title="Delete team" description="Permanently delete this team and all of its data" />
 
-                <Button variant="destructive" onclick={deleteTeam}>
+                <Button variant="destructive" onclick={() => showDeleteDialog = true}>
                     Delete Team
                 </Button>
             </div>
         {/if}
     </SettingsLayout>
+
+    <Dialog bind:open={showDeleteDialog}>
+        <DialogContent class="sm:max-w-md">
+            <div class="flex flex-col space-y-1.5 text-center sm:text-left">
+                <DialogTitle>Delete team</DialogTitle>
+                <DialogDescription>
+                    Are you sure you want to delete this team? This will permanently delete the team and all of its data. This action cannot be undone.
+                </DialogDescription>
+            </div>
+            <DialogFooter>
+                <button
+                    type="button"
+                    class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    onclick={() => showDeleteDialog = false}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex h-9 items-center justify-center rounded-sm bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                    disabled={deleting}
+                    onclick={deleteTeam}
+                >
+                    {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </AppLayout>

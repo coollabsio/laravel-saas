@@ -4,6 +4,14 @@ import { Trash2 } from 'lucide-vue-next';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +22,7 @@ import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Cont
 import TeamMemberController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamMemberController';
 import { edit } from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamController';
 import type { BreadcrumbItem, Team, TeamMember, TeamInvitation } from '@/types';
+import { ref } from 'vue';
 
 type Props = {
     team: Team;
@@ -23,6 +32,8 @@ type Props = {
 };
 
 const props = defineProps<Props>();
+const showDeleteDialog = ref(false);
+const deleting = ref(false);
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -52,13 +63,12 @@ const cancelInvitation = (invitationId: number) => {
 };
 
 const deleteTeam = () => {
-    if (
-        confirm(
-            'Are you sure you want to delete this team? This action cannot be undone.',
-        )
-    ) {
-        router.delete(TeamController.destroy.url(props.team.id));
-    }
+    deleting.value = true;
+    router.delete(TeamController.destroy.url(props.team.id), {
+        onFinish: () => {
+            deleting.value = false;
+        },
+    });
 };
 </script>
 
@@ -193,10 +203,38 @@ const deleteTeam = () => {
                 <Heading variant="small" title="Delete team"
                     description="Permanently delete this team and all of its data" />
 
-                <Button variant="destructive" @click="deleteTeam">
+                <Button variant="destructive" @click="showDeleteDialog = true">
                     Delete Team
                 </Button>
             </div>
         </SettingsLayout>
+
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Delete team</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this team? This will permanently delete the team and all of its data. This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <button
+                        type="button"
+                        class="inline-flex h-9 items-center justify-center rounded-sm border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                        @click="showDeleteDialog = false"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex h-9 items-center justify-center rounded-sm bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                        :disabled="deleting"
+                        @click="deleteTeam"
+                    >
+                        {{ deleting ? 'Deleting...' : 'Delete' }}
+                    </button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
