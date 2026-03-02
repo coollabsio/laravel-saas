@@ -36,6 +36,19 @@ it('passes in self-hosted mode', function () {
     expect($response->getContent())->toBe('ok');
 });
 
+it('passes through on billing routes to prevent redirect loop', function () {
+    config(['saas.self_hosted' => false, 'saas.require_subscription' => true]);
+
+    $request = Request::create('/settings/billing');
+    $request->setUserResolver(fn () => $this->user);
+    $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
+
+    $middleware = new EnsureSubscribed;
+    $response = $middleware->handle($request, fn ($req) => response('ok'));
+
+    expect($response->getContent())->toBe('ok');
+});
+
 it('redirects unsubscribed user to billing when require_subscription is true', function () {
     config(['saas.self_hosted' => false, 'saas.require_subscription' => true]);
 

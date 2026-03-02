@@ -15,6 +15,10 @@ class EnsureSubscribed
             return $next($request);
         }
 
+        if ($request->routeIs('billing.*')) {
+            return $next($request);
+        }
+
         if ($request->user()?->isRootUser()) {
             return $next($request);
         }
