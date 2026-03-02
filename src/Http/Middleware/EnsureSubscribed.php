@@ -9,6 +9,24 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSubscribed
 {
+    /**
+     * Routes that unsubscribed users may still access.
+     *
+     * @var array<int, string>
+     */
+    protected array $allowedRoutes = [
+        'billing.*',
+        'login',
+        'register',
+        'logout',
+        'password.*',
+        'verification.*',
+        'two-factor.*',
+        'user-password.*',
+        'user-profile-information.*',
+        'cashier.webhook',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! Billing::requiresSubscription()) {
@@ -19,7 +37,7 @@ class EnsureSubscribed
             return $next($request);
         }
 
-        if ($request->routeIs('billing.*')) {
+        if ($request->routeIs($this->allowedRoutes)) {
             return $next($request);
         }
 
