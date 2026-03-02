@@ -36,17 +36,20 @@ it('passes in self-hosted mode', function () {
     expect($response->getContent())->toBe('ok');
 });
 
-it('passes through on allowed routes to prevent redirect loop', function () {
+it('passes through on allowed paths to prevent redirect loop', function () {
     config(['saas.self_hosted' => false, 'saas.require_subscription' => true]);
 
-    $request = Request::create('/settings/billing');
-    $request->setUserResolver(fn () => $this->user);
-    $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
+    $paths = ['/settings/billing', '/settings/profile', '/settings/team', '/user/confirm-password', '/login'];
 
-    $middleware = new EnsureSubscribed;
-    $response = $middleware->handle($request, fn ($req) => response('ok'));
+    foreach ($paths as $path) {
+        $request = Request::create($path);
+        $request->setUserResolver(fn () => $this->user);
 
-    expect($response->getContent())->toBe('ok');
+        $middleware = new EnsureSubscribed;
+        $response = $middleware->handle($request, fn ($req) => response('ok'));
+
+        expect($response->getContent())->toBe('ok');
+    }
 });
 
 it('passes through for unauthenticated users', function () {

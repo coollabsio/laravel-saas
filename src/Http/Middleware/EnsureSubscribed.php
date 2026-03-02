@@ -10,21 +10,22 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureSubscribed
 {
     /**
-     * Routes that unsubscribed users may still access.
+     * URL path prefixes that unsubscribed users may still access.
      *
      * @var array<int, string>
      */
-    protected array $allowedRoutes = [
-        'billing.*',
+    protected array $allowedPaths = [
+        'settings/*',
+        'user/*',
         'login',
         'register',
         'logout',
-        'password.*',
-        'verification.*',
-        'two-factor.*',
-        'user-password.*',
-        'user-profile-information.*',
-        'cashier.webhook',
+        'forgot-password',
+        'reset-password/*',
+        'email/verify/*',
+        'stripe/*',
+        'billing/*',
+        'teams/*',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -37,7 +38,7 @@ class EnsureSubscribed
             return $next($request);
         }
 
-        if ($request->routeIs($this->allowedRoutes)) {
+        if ($request->is($this->allowedPaths)) {
             return $next($request);
         }
 
