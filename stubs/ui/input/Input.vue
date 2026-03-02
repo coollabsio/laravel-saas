@@ -44,7 +44,7 @@ const inputType = computed(() =>
       v-if="isPassword"
       type="button"
       tabindex="-1"
-      class="absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+      class="absolute top-1/2 -translate-y-1/2 right-0 flex items-center pr-2 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
       @click="showPassword = !showPassword"
     >
       <EyeOff v-if="showPassword" :size="16" />
