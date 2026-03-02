@@ -46,6 +46,7 @@ class InstallCommand extends Command
                 default: 'vue',
             );
 
+        $this->publishEnvExamples($framework);
         $this->call('vendor:publish', ['--tag' => 'saas-config']);
         $this->setFrontendConfig($framework);
         $this->call('vendor:publish', ['--tag' => "saas-{$framework}"]);
@@ -128,6 +129,37 @@ class InstallCommand extends Command
         }
 
         return config('saas.frontend', 'vue');
+    }
+
+    protected function publishEnvExamples(string $framework): void
+    {
+        $base = dirname(__DIR__, 2);
+        $files = [
+            $base.'/.env.dev.example' => base_path('.env.dev.example'),
+            $base.'/.env.production.example' => base_path('.env.production.example'),
+        ];
+
+        foreach ($files as $source => $target) {
+            if (file_exists($target)) {
+                $this->line(basename($target).' already exists, skipping.');
+
+                continue;
+            }
+
+            if (! file_exists($source)) {
+                continue;
+            }
+
+            $contents = file_get_contents($source);
+            $contents = str_replace(
+                "REQUIRE_SUBSCRIPTION=false\n",
+                "REQUIRE_SUBSCRIPTION=false\nSAAS_FRONTEND={$framework}\n",
+                $contents,
+            );
+
+            file_put_contents($target, $contents);
+            $this->info('Published '.basename($target));
+        }
     }
 
     protected function setFrontendConfig(string $framework): void

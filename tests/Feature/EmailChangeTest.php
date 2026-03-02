@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Coollabsio\LaravelSaas\Mail\EmailChangeMail;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
@@ -22,6 +23,9 @@ test('user can request email change', function () {
     });
 
     expect($user->fresh()->email)->not->toBe('new@example.com');
+
+    $hash = sha1($user->id.'new@example.com');
+    expect(Cache::has("email-change:{$hash}"))->toBeTrue();
 });
 
 test('email change requires authentication', function () {
@@ -67,11 +71,14 @@ test('same email does not send mail', function () {
 
 test('signed url updates email', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
+    $hash = sha1($user->id.'new@example.com');
+
+    Cache::put("email-change:{$hash}", 'new@example.com', now()->addMinutes(15));
 
     $url = URL::temporarySignedRoute(
         'email-change.verify',
         now()->addMinutes(15),
-        ['user' => $user->id, 'email' => 'new@example.com'],
+        ['user' => $user->id, 'hash' => $hash],
     );
 
     $this->get($url)
@@ -81,16 +88,18 @@ test('signed url updates email', function () {
     $user->refresh();
 
     expect($user->email)->toBe('new@example.com')
-        ->and($user->email_verified_at)->not->toBeNull();
+        ->and($user->email_verified_at)->not->toBeNull()
+        ->and(Cache::has("email-change:{$hash}"))->toBeFalse();
 });
 
 test('expired signed url is rejected', function () {
     $user = User::factory()->create();
+    $hash = sha1($user->id.'new@example.com');
 
     $url = URL::temporarySignedRoute(
         'email-change.verify',
         now()->subMinute(),
-        ['user' => $user->id, 'email' => 'new@example.com'],
+        ['user' => $user->id, 'hash' => $hash],
     );
 
     $this->get($url)->assertForbidden();
@@ -101,20 +110,41 @@ test('invalid signature is rejected', function () {
 
     $this->get(route('email-change.verify', [
         'user' => $user->id,
-        'email' => 'new@example.com',
+        'hash' => 'fakehash',
     ]))->assertForbidden();
 });
 
 test('email already taken at verify time', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
+    $hash = sha1($user->id.'taken@example.com');
+
+    Cache::put("email-change:{$hash}", 'taken@example.com', now()->addMinutes(15));
 
     $url = URL::temporarySignedRoute(
         'email-change.verify',
         now()->addMinutes(15),
-        ['user' => $user->id, 'email' => 'taken@example.com'],
+        ['user' => $user->id, 'hash' => $hash],
     );
 
     User::factory()->create(['email' => 'taken@example.com']);
+
+    $this->get($url)
+        ->assertRedirect(route('profile.edit'))
+        ->assertSessionHas('status', 'email-change-failed');
+
+    expect($user->fresh()->email)->toBe('old@example.com');
+});
+
+test('expired cache entry fails gracefully', function () {
+    $user = User::factory()->create(['email' => 'old@example.com']);
+    $hash = sha1($user->id.'new@example.com');
+
+    // No cache entry — simulates expired cache
+    $url = URL::temporarySignedRoute(
+        'email-change.verify',
+        now()->addMinutes(15),
+        ['user' => $user->id, 'hash' => $hash],
+    );
 
     $this->get($url)
         ->assertRedirect(route('profile.edit'))
