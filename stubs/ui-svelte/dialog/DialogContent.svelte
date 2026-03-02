@@ -53,8 +53,11 @@
 
         document.addEventListener('keydown', onKeydown);
 
-        // Auto-focus the dialog panel
-        requestAnimationFrame(() => dialogEl?.focus());
+        // Auto-focus [autofocus] element if present, otherwise the dialog panel
+        requestAnimationFrame(() => {
+            const autofocusEl = dialogEl?.querySelector<HTMLElement>('[autofocus]');
+            (autofocusEl ?? dialogEl)?.focus();
+        });
 
         return () => {
             document.removeEventListener('keydown', onKeydown);

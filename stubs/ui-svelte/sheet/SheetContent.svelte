@@ -78,7 +78,10 @@
         };
 
         document.addEventListener('keydown', onKeydown);
-        requestAnimationFrame(() => panelEl?.focus());
+        requestAnimationFrame(() => {
+            const autofocusEl = panelEl?.querySelector<HTMLElement>('[autofocus]');
+            (autofocusEl ?? panelEl)?.focus();
+        });
 
         return () => {
             document.removeEventListener('keydown', onKeydown);

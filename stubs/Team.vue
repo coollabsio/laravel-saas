@@ -123,7 +123,7 @@ const deleteTeam = () => {
                             <select v-if="isOwner && member.id !== team.owner_id"
                                 :value="member.role"
                                 @change="router.patch(TeamMemberController.update.url({ team: team.id, user: member.id }), { role: ($event.target as HTMLSelectElement).value }, { preserveScroll: true })"
-                                class="appearance-none rounded-sm border-2 border-input py-1 px-2 text-xs capitalize bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow">
+                                class="appearance-none rounded border-2 border-input py-1 px-2 text-xs capitalize bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow">
                                 <option value="member">Member</option>
                                 <option value="owner">Owner</option>
                             </select>
@@ -179,7 +179,7 @@ const deleteTeam = () => {
                     <div class="grid gap-3">
                         <Label for="role">Role</Label>
                         <select id="role" name="role"
-                            class="appearance-none block w-full min-w-0 rounded-sm border-2 border-input py-1.5 px-2 text-sm text-black bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow">
+                            class="appearance-none block w-full min-w-0 rounded border-2 border-input py-1.5 px-2 text-sm text-black bg-white dark:bg-coolgray-100 dark:text-white focus-visible:outline-none focus:border-input transition-shadow">
                             <option value="member">Member</option>
                             <option value="owner">Owner</option>
                         </select>

@@ -37,6 +37,13 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
           )
         "
         v-bind="{ ...$attrs, ...forwarded }"
+        @open-auto-focus="(event: Event) => {
+          const target = (event.target as HTMLElement)?.querySelector<HTMLElement>('[autofocus]');
+          if (target) {
+            event.preventDefault();
+            target.focus();
+          }
+        }"
         @pointer-down-outside="(event) => {
           const originalEvent = event.detail.originalEvent;
           const target = originalEvent.target as HTMLElement;
