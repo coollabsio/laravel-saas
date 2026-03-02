@@ -220,6 +220,7 @@ class InstallCommand extends Command
             $base.'/teams.php' => base_path('routes/saas-teams.php'),
             $base.'/billing.php' => base_path('routes/saas-billing.php'),
             $base.'/instance.php' => base_path('routes/saas-instance.php'),
+            $base.'/profile.php' => base_path('routes/saas-profile.php'),
         ];
     }
 

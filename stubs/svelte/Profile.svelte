@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Form, page } from '@inertiajs/svelte';
     import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+    import EmailChangeController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/EmailChangeController';
     import AppHead from '@/components/AppHead.svelte';
     import DeleteUser from '@/components/DeleteUser.svelte';
     import Heading from '@/components/Heading.svelte';
@@ -40,11 +41,12 @@
     <h1 class="sr-only">Profile settings</h1>
 
     <SettingsLayout>
+        <!-- Name -->
         <div class="flex flex-col space-y-6">
             <Heading
                 variant="small"
                 title="Profile information"
-                description="Update your name and email address"
+                description="Update your name"
             />
 
             <Form
@@ -73,6 +75,35 @@
                         <InputError class="mt-2" message={errors.name} />
                     </div>
 
+                    <div class="flex items-center gap-4">
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            data-test="update-profile-button">Save</Button
+                        >
+
+                        {#if recentlySuccessful}
+                            <p class="text-sm text-neutral-600">Saved.</p>
+                        {/if}
+                    </div>
+                {/snippet}
+            </Form>
+        </div>
+
+        <!-- Email -->
+        <div class="flex flex-col space-y-6">
+            <Heading
+                variant="small"
+                title="Email address"
+                description="Update your email address"
+            />
+
+            <Form
+                {...EmailChangeController.store.form()}
+                class="space-y-6"
+                options={{ preserveScroll: true }}
+            >
+                {#snippet children({ errors, processing })}
                     <div class="grid gap-2">
                         <Label for="email">Email address</Label>
                         <Input
@@ -108,16 +139,30 @@
                         </div>
                     {/if}
 
+                    {#if status === 'email-change-sent'}
+                        <div class="text-sm font-medium text-green-600">
+                            We've sent a verification link to your new email address. It expires in 15 minutes.
+                        </div>
+                    {/if}
+
+                    {#if status === 'email-change-success'}
+                        <div class="text-sm font-medium text-green-600">
+                            Your email address has been updated successfully.
+                        </div>
+                    {/if}
+
+                    {#if status === 'email-change-failed'}
+                        <div class="text-sm font-medium text-red-600">
+                            Email change failed. The email address may already be in use.
+                        </div>
+                    {/if}
+
                     <div class="flex items-center gap-4">
                         <Button
                             type="submit"
                             disabled={processing}
-                            data-test="update-profile-button">Save</Button
+                            data-test="update-email-button">Save</Button
                         >
-
-                        {#if recentlySuccessful}
-                            <p class="text-sm text-neutral-600">Saved.</p>
-                        {/if}
                     </div>
                 {/snippet}
             </Form>

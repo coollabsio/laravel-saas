@@ -1,9 +1,10 @@
 <?php
 
-use Coollabsio\LaravelSaas\Mail\TeamInvitationMail;
 use App\Models\TeamInvitation;
 use App\Models\User;
+use Coollabsio\LaravelSaas\Mail\TeamInvitationMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 test('team owner can send an invitation', function () {
     Mail::fake();
@@ -64,7 +65,6 @@ test('cannot send duplicate invitation', function () {
     $team->invitations()->create([
         'email' => 'invitee@example.com',
         'role' => 'member',
-        'token' => 'test-token',
     ]);
 
     $this->actingAs($owner)
@@ -83,11 +83,16 @@ test('authenticated user can accept an invitation', function () {
     $invitation = $team->invitations()->create([
         'email' => $invitee->email,
         'role' => 'member',
-        'token' => 'accept-token',
     ]);
 
+    $processUrl = URL::temporarySignedRoute(
+        'team-invitations.process',
+        now()->addHour(),
+        ['invitation' => $invitation->id]
+    );
+
     $this->actingAs($invitee)
-        ->post(route('team-invitations.process', 'accept-token'))
+        ->post($processUrl)
         ->assertRedirect(route('home'));
 
     expect($team->hasUser($invitee))->toBeTrue()
@@ -95,18 +100,53 @@ test('authenticated user can accept an invitation', function () {
         ->and($invitee->fresh()->current_team_id)->toBe($team->id);
 });
 
-test('invitation accept page is viewable', function () {
+test('invitation accept page is viewable with valid signature', function () {
     $owner = User::factory()->create();
     $team = $owner->currentTeam;
 
-    $team->invitations()->create([
+    $invitation = $team->invitations()->create([
         'email' => 'guest@example.com',
         'role' => 'member',
-        'token' => 'view-token',
     ]);
 
-    $this->get(route('team-invitations.accept', 'view-token'))
-        ->assertSuccessful();
+    $acceptUrl = URL::temporarySignedRoute(
+        'team-invitations.accept',
+        now()->addDays(7),
+        ['invitation' => $invitation->id]
+    );
+
+    $this->get($acceptUrl)->assertSuccessful();
+});
+
+test('invitation accept page rejects invalid signature', function () {
+    $owner = User::factory()->create();
+    $team = $owner->currentTeam;
+
+    $invitation = $team->invitations()->create([
+        'email' => 'guest@example.com',
+        'role' => 'member',
+    ]);
+
+    $this->get(route('team-invitations.accept', ['invitation' => $invitation->id]))
+        ->assertForbidden();
+});
+
+test('invitation accept page rejects expired signature', function () {
+    $owner = User::factory()->create();
+    $team = $owner->currentTeam;
+
+    $invitation = $team->invitations()->create([
+        'email' => 'guest@example.com',
+        'role' => 'member',
+    ]);
+
+    $expiredUrl = URL::temporarySignedRoute(
+        'team-invitations.accept',
+        now()->subMinute(),
+        ['invitation' => $invitation->id]
+    );
+
+    $this->get($expiredUrl)->assertForbidden();
 });
 
 test('team owner can cancel an invitation', function () {
@@ -116,7 +156,6 @@ test('team owner can cancel an invitation', function () {
     $invitation = $team->invitations()->create([
         'email' => 'cancel@example.com',
         'role' => 'member',
-        'token' => 'cancel-token',
     ]);
 
     $this->actingAs($owner)
@@ -126,21 +165,22 @@ test('team owner can cancel an invitation', function () {
     expect(TeamInvitation::find($invitation->id))->toBeNull();
 });
 
-test('team invitation email is plain text', function () {
+test('team invitation email contains signed URL', function () {
     $owner = User::factory()->create();
     $team = $owner->currentTeam;
 
     $invitation = $team->invitations()->create([
         'email' => 'invitee@example.com',
         'role' => 'member',
-        'token' => 'plain-text-token',
     ]);
 
     $mail = new TeamInvitationMail($invitation);
     $rendered = $mail->render();
 
     expect($rendered)->toContain(e($team->name))
-        ->and($rendered)->toContain(route('team-invitations.accept', 'plain-text-token'))
+        ->and($rendered)->toContain('signature=')
+        ->and($rendered)->toContain('expires=')
+        ->and($rendered)->toContain('/invitations/'.$invitation->id)
         ->and($rendered)->not->toContain('<x-mail::')
         ->and($rendered)->not->toContain('<x-mail::button');
 });

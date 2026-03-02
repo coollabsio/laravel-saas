@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class TeamInvitationMail extends Mailable
 {
@@ -27,7 +28,11 @@ class TeamInvitationMail extends Mailable
         return new Content(
             text: 'laravel-saas::mail.team-invitation',
             with: [
-                'acceptUrl' => route('team-invitations.accept', $this->invitation->token),
+                'acceptUrl' => URL::temporarySignedRoute(
+                    'team-invitations.accept',
+                    now()->addDays(7),
+                    ['invitation' => $this->invitation->id]
+                ),
                 'teamName' => $this->invitation->team->name,
             ],
         );

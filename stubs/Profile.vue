@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, usePage } from '@inertiajs/vue3';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import EmailChangeController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/EmailChangeController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -18,7 +19,7 @@ type Props = {
     status?: string;
 };
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -39,11 +40,12 @@ const isRootUser = page.props.instance?.isRootUser ?? false;
         <h1 class="sr-only">Profile Settings</h1>
 
         <SettingsLayout>
+            <!-- Name -->
             <div class="flex flex-col space-y-6">
                 <Heading
                     variant="small"
                     title="Profile information"
-                    description="Update your name and email address"
+                    description="Update your name"
                 />
 
                 <Form
@@ -68,6 +70,43 @@ const isRootUser = page.props.instance?.isRootUser ?? false;
                         <InputError :message="errors.name" />
                     </div>
 
+                    <div class="flex items-center gap-4">
+                        <Button
+                            :disabled="processing"
+                            data-test="update-profile-button"
+                            >Save</Button
+                        >
+
+                        <Transition
+                            enter-active-class="transition ease-in-out"
+                            enter-from-class="opacity-0"
+                            leave-active-class="transition ease-in-out"
+                            leave-to-class="opacity-0"
+                        >
+                            <p
+                                v-show="recentlySuccessful"
+                                class="text-sm text-neutral-600"
+                            >
+                                Saved.
+                            </p>
+                        </Transition>
+                    </div>
+                </Form>
+            </div>
+
+            <!-- Email -->
+            <div class="flex flex-col space-y-6">
+                <Heading
+                    variant="small"
+                    title="Email address"
+                    description="Update your email address"
+                />
+
+                <Form
+                    v-bind="EmailChangeController.store.form()"
+                    class="space-y-6"
+                    v-slot="{ errors, processing }"
+                >
                     <div class="grid gap-2">
                         <Label for="email">Email address</Label>
                         <Input
@@ -103,26 +142,24 @@ const isRootUser = page.props.instance?.isRootUser ?? false;
                         </div>
                     </div>
 
+                    <div v-if="status === 'email-change-sent'" class="text-sm font-medium text-green-600">
+                        We've sent a verification link to your new email address. It expires in 15 minutes.
+                    </div>
+
+                    <div v-if="status === 'email-change-success'" class="text-sm font-medium text-green-600">
+                        Your email address has been updated successfully.
+                    </div>
+
+                    <div v-if="status === 'email-change-failed'" class="text-sm font-medium text-red-600">
+                        Email change failed. The email address may already be in use.
+                    </div>
+
                     <div class="flex items-center gap-4">
                         <Button
                             :disabled="processing"
-                            data-test="update-profile-button"
+                            data-test="update-email-button"
                             >Save</Button
                         >
-
-                        <Transition
-                            enter-active-class="transition ease-in-out"
-                            enter-from-class="opacity-0"
-                            leave-active-class="transition ease-in-out"
-                            leave-to-class="opacity-0"
-                        >
-                            <p
-                                v-show="recentlySuccessful"
-                                class="text-sm text-neutral-600"
-                            >
-                                Saved.
-                            </p>
-                        </Transition>
                     </div>
                 </Form>
             </div>

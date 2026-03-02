@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamInvitationController';
 import type { TeamInvitation } from '@/types';
 
 type Props = {
     invitation: TeamInvitation;
+    processUrl: string;
 };
 
 const props = defineProps<Props>();
@@ -33,11 +33,8 @@ const isAuthenticated = !!page.props.auth?.user;
 
             <div v-if="isAuthenticated" class="space-y-4">
                 <Form
-                    v-bind="
-                        TeamInvitationController.process.form({
-                            token: invitation.token,
-                        })
-                    "
+                    :action="processUrl"
+                    method="post"
                     v-slot="{ processing }"
                 >
                     <Button class="w-full" :disabled="processing">

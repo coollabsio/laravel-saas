@@ -20,7 +20,6 @@ class TeamInvitation extends Model
         'team_id',
         'email',
         'role',
-        'token',
     ];
 
     protected static function newFactory(): TeamInvitationFactory

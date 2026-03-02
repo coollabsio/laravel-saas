@@ -5,8 +5,6 @@ namespace Coollabsio\LaravelSaas\Database\Factories;
 use Coollabsio\LaravelSaas\Models\Team;
 use Coollabsio\LaravelSaas\Models\TeamInvitation;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
-
 /**
  * @extends Factory<TeamInvitation>
  */
@@ -23,7 +21,6 @@ class TeamInvitationFactory extends Factory
             'team_id' => Team::factory(),
             'email' => fake()->unique()->safeEmail(),
             'role' => 'member',
-            'token' => Str::random(40),
         ];
     }
 }

@@ -34,5 +34,6 @@ return [
         'teams' => true,
         'billing' => true,
         'instance' => true,
+        'profile' => true,
     ],
 ];

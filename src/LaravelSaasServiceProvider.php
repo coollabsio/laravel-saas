@@ -79,6 +79,7 @@ class LaravelSaasServiceProvider extends ServiceProvider
             __DIR__.'/../routes/teams.php' => base_path('routes/saas-teams.php'),
             __DIR__.'/../routes/billing.php' => base_path('routes/saas-billing.php'),
             __DIR__.'/../routes/instance.php' => base_path('routes/saas-instance.php'),
+            __DIR__.'/../routes/profile.php' => base_path('routes/saas-profile.php'),
         ], 'saas-routes');
 
         $this->publishes([
@@ -98,6 +99,10 @@ class LaravelSaasServiceProvider extends ServiceProvider
 
         if (config('saas.routes.instance', true)) {
             Route::group([], __DIR__.'/../routes/instance.php');
+        }
+
+        if (config('saas.routes.profile', true)) {
+            Route::group([], __DIR__.'/../routes/profile.php');
         }
     }
 

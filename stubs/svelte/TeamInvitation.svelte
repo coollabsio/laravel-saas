@@ -1,14 +1,14 @@
 <script lang="ts">
     import { Form, page } from '@inertiajs/svelte';
     import { Button } from '@/components/ui/button';
-    import TeamInvitationController from '@/actions/Coollabsio/LaravelSaas/Http/Controllers/TeamInvitationController';
     import type { TeamInvitation } from '@/types';
 
     interface Props {
         invitation: TeamInvitation;
+        processUrl: string;
     }
 
-    let { invitation }: Props = $props();
+    let { invitation, processUrl }: Props = $props();
 
     const isAuthenticated = $derived(!!$page.props.auth?.user);
 </script>
@@ -30,9 +30,7 @@
 
         {#if isAuthenticated}
             <div class="space-y-4">
-                <Form
-                    {...TeamInvitationController.process.form({ token: invitation.token })}
-                >
+                <Form action={processUrl} method="post">
                     {#snippet children({ processing })}
                         <Button type="submit" class="w-full" disabled={processing}>
                             Accept Invitation

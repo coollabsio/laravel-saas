@@ -20,8 +20,10 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
 });
 
 Route::middleware('web')->group(function () {
-    Route::get('invitations/{token}', [TeamInvitationController::class, 'accept'])->name('team-invitations.accept');
-    Route::post('invitations/{token}', [TeamInvitationController::class, 'process'])
-        ->middleware('auth')
+    Route::get('invitations/{invitation}', [TeamInvitationController::class, 'accept'])
+        ->name('team-invitations.accept')
+        ->middleware('signed');
+    Route::post('invitations/{invitation}', [TeamInvitationController::class, 'process'])
+        ->middleware(['signed', 'auth'])
         ->name('team-invitations.process');
 });
