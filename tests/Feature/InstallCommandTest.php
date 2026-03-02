@@ -7,7 +7,7 @@ it('has the correct managed stubs for vue framework', function () {
 
     $stubs = (new ReflectionMethod($command, 'managedStubs'))->invoke($command, 'vue');
 
-    expect($stubs)->toHaveCount(9);
+    expect($stubs)->toHaveCount(10);
 
     foreach ($stubs as $source => $target) {
         expect($source)->toEndWith('.vue');
@@ -20,7 +20,7 @@ it('has the correct managed stubs for svelte framework', function () {
 
     $stubs = (new ReflectionMethod($command, 'managedStubs'))->invoke($command, 'svelte');
 
-    expect($stubs)->toHaveCount(9);
+    expect($stubs)->toHaveCount(10);
 
     foreach ($stubs as $source => $target) {
         expect($source)->toEndWith('.svelte');

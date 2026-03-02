@@ -76,22 +76,24 @@
                 <DropdownMenuLabel class="text-xs text-muted-foreground">
                     Teams
                 </DropdownMenuLabel>
-                {#each teams ?? [] as team (team.id)}
-                    <DropdownMenuItem asChild>
-                        {#snippet children(itemProps)}
-                            <button
-                                {...itemProps}
-                                class="{itemProps.class} p-2"
-                                onclick={(e) => { itemProps.onClick?.(e); handleTeamClick(team); }}
-                            >
-                                {team.name}
-                                {#if team.id === currentTeam?.id}
-                                    <Check class="ml-auto size-4" />
-                                {/if}
-                            </button>
-                        {/snippet}
-                    </DropdownMenuItem>
-                {/each}
+                <div class="space-y-1">
+                    {#each teams ?? [] as team (team.id)}
+                        <DropdownMenuItem asChild>
+                            {#snippet children(itemProps)}
+                                <button
+                                    {...itemProps}
+                                    class="{itemProps.class} gap-2 p-2"
+                                    onclick={(e) => { itemProps.onClick?.(e); handleTeamClick(team); }}
+                                >
+                                    {team.name}
+                                    {#if team.id === currentTeam?.id}
+                                        <Check class="ml-auto size-4" />
+                                    {/if}
+                                </button>
+                            {/snippet}
+                        </DropdownMenuItem>
+                    {/each}
+                </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     {#snippet children(itemProps)}

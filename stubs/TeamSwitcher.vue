@@ -88,26 +88,28 @@ const handleCreateTeam = () => {
                     <DropdownMenuLabel class="text-xs text-muted-foreground">
                         Teams
                     </DropdownMenuLabel>
-                    <DropdownMenuItem
-                        v-for="team in teams"
-                        :key="team.id"
-                        class="cursor-pointer p-2"
-                        @click="
-                            team.id === currentTeam?.id
-                                ? router.visit(editTeam().url)
-                                : router.put(
-                                      switchTeam(team.id).url,
-                                      {},
-                                      { preserveState: false },
-                                  )
-                        "
-                    >
-                        {{ team.name }}
-                        <Check
-                            v-if="team.id === currentTeam?.id"
-                            class="ml-auto size-4"
-                        />
-                    </DropdownMenuItem>
+                    <div class="space-y-1">
+                        <DropdownMenuItem
+                            v-for="team in teams"
+                            :key="team.id"
+                            class="cursor-pointer gap-2 p-2"
+                            @click="
+                                team.id === currentTeam?.id
+                                    ? router.visit(editTeam().url)
+                                    : router.put(
+                                          switchTeam(team.id).url,
+                                          {},
+                                          { preserveState: false },
+                                      )
+                            "
+                        >
+                            {{ team.name }}
+                            <Check
+                                v-if="team.id === currentTeam?.id"
+                                class="ml-auto size-4"
+                            />
+                        </DropdownMenuItem>
+                    </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         class="cursor-pointer gap-2 p-2"

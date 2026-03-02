@@ -213,6 +213,7 @@ class InstallCommand extends Command
             $dir."/Login.{$ext}" => resource_path("js/pages/auth/Login.{$ext}"),
             $dir."/Profile.{$ext}" => resource_path("js/pages/settings/Profile.{$ext}"),
             $dir."/components/DeleteUser.{$ext}" => resource_path("js/components/DeleteUser.{$ext}"),
+            $dir."/components/UserMenuContent.{$ext}" => resource_path("js/components/UserMenuContent.{$ext}"),
         ];
     }
 
@@ -566,6 +567,7 @@ This app uses `coollabsio/laravel-saas` for teams, billing, and self-hosted mode
   - `resources/js/pages/auth/Login.{$ext}`
   - `resources/js/pages/settings/Profile.{$ext}`
   - `resources/js/components/DeleteUser.{$ext}`
+  - `resources/js/components/UserMenuContent.{$ext}`
 - User model must use `Coollabsio\LaravelSaas\Concerns\HasTeams` trait
 - Registration action must use `Coollabsio\LaravelSaas\Concerns\CreatesPersonalTeam` trait
 - `ShareSaasProps` middleware shares `currentTeam`, `teams`, `billing`, `instance`, and `dev` (local env only) Inertia props
