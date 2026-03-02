@@ -15,15 +15,19 @@ class EnsureSubscribed
             return $next($request);
         }
 
+        if (! $request->user()) {
+            return $next($request);
+        }
+
         if ($request->routeIs('billing.*')) {
             return $next($request);
         }
 
-        if ($request->user()?->isRootUser()) {
+        if ($request->user()->isRootUser()) {
             return $next($request);
         }
 
-        if ($request->user()?->currentTeam?->subscribed()) {
+        if ($request->user()->currentTeam?->subscribed()) {
             return $next($request);
         }
 
