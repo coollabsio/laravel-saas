@@ -119,7 +119,7 @@ class LaravelSaasServiceProvider extends ServiceProvider
 
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
         $kernel->pushMiddleware(CheckRegistrationEnabled::class);
-        $kernel->pushMiddleware(EnsureSubscribed::class);
+        $kernel->appendMiddlewareToGroup('web', EnsureSubscribed::class);
     }
 
     protected function configurePolicies(): void
