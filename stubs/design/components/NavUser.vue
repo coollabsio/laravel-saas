@@ -40,7 +40,7 @@ const { isMobile, state } = useSidebar();
                         isMobile
                             ? 'bottom'
                             : state === 'collapsed'
-                              ? 'left'
+                              ? 'right'
                               : 'top'
                     "
                     align="end"
