@@ -38,9 +38,9 @@
                 {/snippet}
             </DropdownMenuTrigger>
             <DropdownMenuContent
-                class="w-full min-w-0 rounded-sm"
-                side={$sidebarState === 'collapsed' && !$isMobile ? 'left' : 'top'}
-                align="end"
+                class="min-w-56 rounded-sm {$sidebarState !== 'collapsed' ? 'w-(--reka-dropdown-menu-trigger-width)' : ''}"
+                side={$isMobile ? 'bottom' : 'top'}
+                align={$sidebarState === 'collapsed' ? 'start' : 'end'}
                 sideOffset={4}
             >
                 <UserMenuContent {user} />

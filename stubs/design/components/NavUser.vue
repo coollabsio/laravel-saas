@@ -35,15 +35,10 @@ const { isMobile, state } = useSidebar();
                     </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                    class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-sm"
-                    :side="
-                        isMobile
-                            ? 'bottom'
-                            : state === 'collapsed'
-                              ? 'right'
-                              : 'top'
-                    "
-                    align="end"
+                    class="min-w-56 rounded-sm"
+                    :class="state !== 'collapsed' && 'w-(--reka-dropdown-menu-trigger-width)'"
+                    :side="isMobile ? 'bottom' : 'top'"
+                    :align="state === 'collapsed' ? 'start' : 'end'"
                     :side-offset="4"
                 >
                     <UserMenuContent :user="user" />
