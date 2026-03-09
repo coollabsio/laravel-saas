@@ -2,6 +2,12 @@
 
 use Coollabsio\LaravelSaas\Console\InstallCommand;
 
+beforeEach(function () {
+    if (str_contains(__DIR__, 'vendor')) {
+        $this->markTestSkipped('InstallCommand tests are skipped in consuming projects.');
+    }
+});
+
 it('has the correct managed stubs for vue framework', function () {
     $command = new InstallCommand;
 
